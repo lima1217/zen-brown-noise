@@ -1,0 +1,90 @@
+:root {
+    --color-wasabi: #99D7B3;
+    --color-ice-blue: #99D8D4;
+    --color-white: #FFFFFF;
+    --bg-color: var(--color-white);
+    --primary-color: var(--color-ice-blue);
+    --accent-color: var(--color-wasabi);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--accent-color);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.zen-circle {
+    width: 200px;
+    height: 200px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 10px 30px rgba(153, 216, 212, 0.3);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.zen-circle:hover {
+    transform: scale(1.05);
+    background-color: var(--accent-color);
+    box-shadow: 0 15px 40px rgba(153, 215, 179, 0.4);
+}
+
+.status-text {
+    color: var(--color-white);
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 0.2rem;
+    pointer-events: none;
+}
+
+/* Playing State */
+.zen-circle.playing {
+    background-color: var(--accent-color);
+    animation: breathe 4s infinite ease-in-out;
+}
+
+.zen-circle.playing .status-text {
+    opacity: 0.8;
+}
+
+@keyframes breathe {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(153, 215, 179, 0.3);
+    }
+
+    50% {
+        transform: scale(1.2);
+        box-shadow: 0 20px 50px rgba(153, 216, 212, 0.5);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(153, 215, 179, 0.3);
+    }
+}
