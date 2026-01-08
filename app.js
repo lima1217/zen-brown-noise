@@ -17,7 +17,7 @@ const SENSITIVITY = 0.002;
 function initAudio() {
     if (window.brownNoiseAudio) return window.brownNoiseAudio;
 
-    window.brownNoiseAudio = new Audio('brown-noise.wav');
+    window.brownNoiseAudio = new Audio('brown-noise.mp3');
     window.brownNoiseAudio.loop = true;
     window.brownNoiseAudio.volume = volume;
     window.brownNoiseAudio.preload = 'auto';
@@ -183,6 +183,11 @@ function handleTouchMove(e) {
 
             volume += delta * SENSITIVITY;
             volume = Math.max(0, Math.min(1, volume));
+
+            // Directly update audio volume
+            if (window.brownNoiseAudio) {
+                window.brownNoiseAudio.volume = volume;
+            }
 
             updateVolumeRing();
         }
