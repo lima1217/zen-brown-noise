@@ -9,10 +9,54 @@ let gainNode;
 let isPlaying = false;
 let volume = 0.5;
 
+// Silent audio element for iOS background playback
+let silentAudio;
+
 // Circular gesture tracking
 let lastAngle = null;
 let isTracking = false;
 const SENSITIVITY = 0.002;
+
+// Create a silent audio element for iOS background playback workaround
+function createSilentAudio() {
+    if (silentAudio) return silentAudio;
+
+    // Create a very short silent audio using data URI
+    // This is a minimal valid MP3 file (silence)
+    const silentMP3 = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+9DEAAAIAANIAAAAQigA0gAAABERERERERERERERERERERERERERERERERERERERERERERERERERERP/7UMQFgAAADSAAAAAAAANIAAAARERERERERERERERERERERERERERERERERERERERERERERERERERE//tQxAWAAAANIAAAAAAAA0gAAABERERERERERERERERERERERERERERERERERERERERERERERERERET/+1DEBYAAAANIAAAAAAAADSAAAABEREREREREREREREREREREREREREREREREREREREREREREREREREf/7UMQFAAAAA0gAAAAAAANIAAAARERERERERERERERERERERERERERERERERERERERERERERERERERE';
+
+    silentAudio = new Audio(silentMP3);
+    silentAudio.loop = true;
+    silentAudio.volume = 0.01; // Nearly silent
+
+    return silentAudio;
+}
+
+// Setup Media Session API for lock screen controls
+function setupMediaSession() {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: 'Brown Noise',
+            artist: 'Zen Focus',
+            album: 'Ambient Sounds',
+            artwork: [
+                { src: 'apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+            if (!isPlaying) startNoise();
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+            if (isPlaying) stopNoise();
+        });
+
+        navigator.mediaSession.setActionHandler('stop', () => {
+            if (isPlaying) stopNoise();
+        });
+    }
+}
 
 // Create Brown Noise Buffer
 function createBrownNoiseBuffer(ctx) {
@@ -126,10 +170,10 @@ document.addEventListener('mousemove', handleMouseMove);
 // Mobile: touch events for circular gesture
 function handleTouchMove(e) {
     if (!isPlaying || e.touches.length === 0) return;
-    
+
     // Prevent scrolling while adjusting volume
     e.preventDefault();
-    
+
     const touch = e.touches[0];
     const center = getButtonCenter();
     const touchX = touch.clientX;
@@ -182,14 +226,13 @@ document.addEventListener('touchmove', handleTouchMove, { passive: false });
 document.addEventListener('touchend', handleTouchEnd);
 document.addEventListener('touchcancel', handleTouchEnd);
 
-// Fix: Keep audio playing when switching tabs/apps on desktop
+// Fix: Keep audio playing when switching tabs/apps
 document.addEventListener('visibilitychange', () => {
     if (audioCtx && isPlaying) {
         if (document.visibilityState === 'visible') {
             // Resume audio when page becomes visible again
             audioCtx.resume();
         }
-        // Note: We don't suspend on hidden to keep audio playing in background
     }
 });
 
@@ -201,6 +244,12 @@ function startNoise() {
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
+
+    // Start silent audio for iOS background playback
+    const silent = createSilentAudio();
+    silent.play().catch(() => {
+        // Ignore errors - user gesture may be required
+    });
 
     brownNoiseSource = audioCtx.createBufferSource();
     brownNoiseSource.buffer = createBrownNoiseBuffer(audioCtx);
@@ -221,6 +270,14 @@ function startNoise() {
     volumeRing.classList.add('active');
     updateVolumeRing();
     showHint();
+
+    // Setup media session for lock screen controls
+    setupMediaSession();
+
+    // Update media session playback state
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
 }
 
 function stopNoise() {
@@ -234,10 +291,21 @@ function stopNoise() {
             isPlaying = false;
         }, 500);
 
+        // Stop silent audio
+        if (silentAudio) {
+            silentAudio.pause();
+            silentAudio.currentTime = 0;
+        }
+
         playBtn.classList.remove('playing');
         statusText.textContent = "START";
         volumeRing.classList.remove('active');
         volumeRing.classList.remove('adjusting');
         lastAngle = null;
+
+        // Update media session playback state
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'paused';
+        }
     }
 }
