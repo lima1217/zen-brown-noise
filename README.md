@@ -33,3 +33,22 @@ No build step required. This project uses vanilla HTML, CSS, and JavaScript.
 ## 📄 License
 
 MIT
+
+---
+
+## 📋 Changelog
+
+### v1.1.0 (2026-01-08)
+**PWA & Mobile Enhancements**
+- ✨ Added iOS home screen icon (`apple-touch-icon.png`)
+- ✨ Added PWA meta tags for mobile web app support
+- 🐛 Fixed: Audio now continues playing when switching browser tabs on desktop
+- 🐛 Fixed: Touch gesture volume control now works on mobile devices
+- 📱 Added `touchmove`, `touchend`, `touchcancel` event handlers for mobile
+
+### v1.0.0 (2026-01-07)
+**Initial Release**
+- 🎨 Minimalist zen aesthetic with Green/Yellow/Blue color palette
+- 🔊 Brown noise generation using Web Audio API
+- 🖱️ Circular gesture volume control
+- ✨ Breathing animation and visual feedback
