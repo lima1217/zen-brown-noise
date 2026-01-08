@@ -120,7 +120,78 @@ playBtn.addEventListener('click', () => {
     }
 });
 
+// Desktop: mouse move for circular gesture
 document.addEventListener('mousemove', handleMouseMove);
+
+// Mobile: touch events for circular gesture
+function handleTouchMove(e) {
+    if (!isPlaying || e.touches.length === 0) return;
+    
+    // Prevent scrolling while adjusting volume
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const center = getButtonCenter();
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+
+    const dx = touchX - center.x;
+    const dy = touchY - center.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const innerRadius = center.radius;
+    const outerRadius = center.radius + 120;
+
+    if (distance > innerRadius && distance < outerRadius) {
+        volumeRing.classList.add('adjusting');
+
+        const currentAngle = getAngle(center.x, center.y, touchX, touchY);
+
+        if (lastAngle !== null) {
+            let delta = currentAngle - lastAngle;
+
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+
+            volume += delta * SENSITIVITY;
+            volume = Math.max(0, Math.min(1, volume));
+
+            if (gainNode) {
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+            }
+
+            updateVolumeRing();
+        }
+
+        lastAngle = currentAngle;
+        isTracking = true;
+    } else {
+        volumeRing.classList.remove('adjusting');
+        lastAngle = null;
+        isTracking = false;
+    }
+}
+
+function handleTouchEnd() {
+    volumeRing.classList.remove('adjusting');
+    lastAngle = null;
+    isTracking = false;
+}
+
+document.addEventListener('touchmove', handleTouchMove, { passive: false });
+document.addEventListener('touchend', handleTouchEnd);
+document.addEventListener('touchcancel', handleTouchEnd);
+
+// Fix: Keep audio playing when switching tabs/apps on desktop
+document.addEventListener('visibilitychange', () => {
+    if (audioCtx && isPlaying) {
+        if (document.visibilityState === 'visible') {
+            // Resume audio when page becomes visible again
+            audioCtx.resume();
+        }
+        // Note: We don't suspend on hidden to keep audio playing in background
+    }
+});
 
 function startNoise() {
     if (!audioCtx) {
