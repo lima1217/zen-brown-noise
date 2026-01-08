@@ -227,7 +227,12 @@ async function startNoise() {
     const audio = initAudio();
 
     try {
-        await audio.play();
+        // Chrome requires user interaction - this should work since we're in a click handler
+        const playPromise = audio.play();
+
+        if (playPromise !== undefined) {
+            await playPromise;
+        }
 
         isPlaying = true;
         playBtn.classList.add('playing');
@@ -245,6 +250,11 @@ async function startNoise() {
         }
     } catch (error) {
         console.error('Failed to start audio:', error);
+        // Show error to user
+        statusText.textContent = "ERROR";
+        setTimeout(() => {
+            statusText.textContent = "START";
+        }, 2000);
     }
 }
 
