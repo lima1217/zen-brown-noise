@@ -26,6 +26,11 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    /* Prevent browser gestures from interfering */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .container {
@@ -48,6 +53,8 @@ body {
     justify-content: center;
     align-items: center;
     border-radius: 50%;
+    /* Disable default touch actions for gesture control */
+    touch-action: none;
 }
 
 /* Ink wash layers for organic look */
@@ -182,9 +189,10 @@ body {
 }
 
 .status-text {
+    font-family: 'Quicksand', sans-serif;
     color: white;
     font-size: 1rem;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.15rem;
     pointer-events: none;
     text-transform: uppercase;

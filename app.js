@@ -4,7 +4,7 @@ const volumeRing = document.getElementById('volumeRing');
 const hintText = document.getElementById('hintText');
 
 // Use HTML5 Audio for iOS background playback support
-let audioElement;
+// Store in window object for PWA compatibility
 let isPlaying = false;
 let volume = 0.5;
 
@@ -13,21 +13,21 @@ let lastAngle = null;
 let isTracking = false;
 const SENSITIVITY = 0.002;
 
-// Initialize audio element
+// Initialize audio element in window object for PWA compatibility
 function initAudio() {
-    if (audioElement) return audioElement;
+    if (window.brownNoiseAudio) return window.brownNoiseAudio;
 
-    audioElement = new Audio('brown-noise.wav');
-    audioElement.loop = true;
-    audioElement.volume = volume;
-    audioElement.preload = 'auto';
+    window.brownNoiseAudio = new Audio('brown-noise.wav');
+    window.brownNoiseAudio.loop = true;
+    window.brownNoiseAudio.volume = volume;
+    window.brownNoiseAudio.preload = 'auto';
 
     // Handle audio errors
-    audioElement.onerror = (e) => {
+    window.brownNoiseAudio.onerror = (e) => {
         console.error('Audio error:', e);
     };
 
-    return audioElement;
+    return window.brownNoiseAudio;
 }
 
 // Setup Media Session API for lock screen controls
@@ -67,8 +67,8 @@ function updateVolumeRing() {
     volumeRing.style.setProperty('--volume-intensity', intensity);
 
     // Update audio volume
-    if (audioElement) {
-        audioElement.volume = volume;
+    if (window.brownNoiseAudio) {
+        window.brownNoiseAudio.volume = volume;
     }
 }
 
@@ -208,11 +208,11 @@ document.addEventListener('touchcancel', handleTouchEnd);
 
 // Handle page visibility changes
 document.addEventListener('visibilitychange', () => {
-    if (audioElement && isPlaying) {
+    if (window.brownNoiseAudio && isPlaying) {
         if (document.visibilityState === 'visible') {
             // Resume if paused
-            if (audioElement.paused) {
-                audioElement.play().catch(() => { });
+            if (window.brownNoiseAudio.paused) {
+                window.brownNoiseAudio.play().catch(() => { });
             }
         }
     }
@@ -244,9 +244,9 @@ async function startNoise() {
 }
 
 function stopNoise() {
-    if (audioElement) {
-        audioElement.pause();
-        audioElement.currentTime = 0;
+    if (window.brownNoiseAudio) {
+        window.brownNoiseAudio.pause();
+        window.brownNoiseAudio.currentTime = 0;
     }
 
     isPlaying = false;
