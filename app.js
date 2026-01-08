@@ -3,33 +3,31 @@ const statusText = playBtn.querySelector('.status-text');
 const volumeRing = document.getElementById('volumeRing');
 const hintText = document.getElementById('hintText');
 
-let audioCtx;
-let brownNoiseSource;
-let gainNode;
+// Use HTML5 Audio for iOS background playback support
+let audioElement;
 let isPlaying = false;
 let volume = 0.5;
-
-// Silent audio element for iOS background playback
-let silentAudio;
 
 // Circular gesture tracking
 let lastAngle = null;
 let isTracking = false;
 const SENSITIVITY = 0.002;
 
-// Create a silent audio element for iOS background playback workaround
-function createSilentAudio() {
-    if (silentAudio) return silentAudio;
+// Initialize audio element
+function initAudio() {
+    if (audioElement) return audioElement;
 
-    // Create a very short silent audio using data URI
-    // This is a minimal valid MP3 file (silence)
-    const silentMP3 = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+9DEAAAIAANIAAAAQigA0gAAABERERERERERERERERERERERERERERERERERERERERERERERERERERP/7UMQFgAAADSAAAAAAAANIAAAARERERERERERERERERERERERERERERERERERERERERERERERERERE//tQxAWAAAANIAAAAAAAA0gAAABERERERERERERERERERERERERERERERERERERERERERERERERERET/+1DEBYAAAANIAAAAAAAADSAAAABEREREREREREREREREREREREREREREREREREREREREREREREREREf/7UMQFAAAAA0gAAAAAAANIAAAARERERERERERERERERERERERERERERERERERERERERERERERERERE';
+    audioElement = new Audio('brown-noise.wav');
+    audioElement.loop = true;
+    audioElement.volume = volume;
+    audioElement.preload = 'auto';
 
-    silentAudio = new Audio(silentMP3);
-    silentAudio.loop = true;
-    silentAudio.volume = 0.01; // Nearly silent
+    // Handle audio errors
+    audioElement.onerror = (e) => {
+        console.error('Audio error:', e);
+    };
 
-    return silentAudio;
+    return audioElement;
 }
 
 // Setup Media Session API for lock screen controls
@@ -58,21 +56,6 @@ function setupMediaSession() {
     }
 }
 
-// Create Brown Noise Buffer
-function createBrownNoiseBuffer(ctx) {
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-
-    let lastOut = 0;
-    for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        lastOut = (lastOut + (0.02 * white)) / 1.02;
-        data[i] = lastOut * 3.5;
-    }
-    return buffer;
-}
-
 // Update ink wash visual feedback - scale and intensity based on volume
 function updateVolumeRing() {
     // Scale from 0.8 to 1.3
@@ -82,6 +65,11 @@ function updateVolumeRing() {
 
     volumeRing.style.setProperty('--volume-scale', scale);
     volumeRing.style.setProperty('--volume-intensity', intensity);
+
+    // Update audio volume
+    if (audioElement) {
+        audioElement.volume = volume;
+    }
 }
 
 // Calculate angle from center of button to mouse position
@@ -131,10 +119,6 @@ function handleMouseMove(e) {
 
             volume += delta * SENSITIVITY;
             volume = Math.max(0, Math.min(1, volume));
-
-            if (gainNode) {
-                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-            }
 
             updateVolumeRing();
         }
@@ -200,10 +184,6 @@ function handleTouchMove(e) {
             volume += delta * SENSITIVITY;
             volume = Math.max(0, Math.min(1, volume));
 
-            if (gainNode) {
-                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-            }
-
             updateVolumeRing();
         }
 
@@ -226,86 +206,63 @@ document.addEventListener('touchmove', handleTouchMove, { passive: false });
 document.addEventListener('touchend', handleTouchEnd);
 document.addEventListener('touchcancel', handleTouchEnd);
 
-// Fix: Keep audio playing when switching tabs/apps
+// Handle page visibility changes
 document.addEventListener('visibilitychange', () => {
-    if (audioCtx && isPlaying) {
+    if (audioElement && isPlaying) {
         if (document.visibilityState === 'visible') {
-            // Resume audio when page becomes visible again
-            audioCtx.resume();
+            // Resume if paused
+            if (audioElement.paused) {
+                audioElement.play().catch(() => { });
+            }
         }
     }
 });
 
-function startNoise() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+async function startNoise() {
+    const audio = initAudio();
 
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    try {
+        await audio.play();
 
-    // Start silent audio for iOS background playback
-    const silent = createSilentAudio();
-    silent.play().catch(() => {
-        // Ignore errors - user gesture may be required
-    });
+        isPlaying = true;
+        playBtn.classList.add('playing');
+        statusText.textContent = "STOP";
+        volumeRing.classList.add('active');
+        updateVolumeRing();
+        showHint();
 
-    brownNoiseSource = audioCtx.createBufferSource();
-    brownNoiseSource.buffer = createBrownNoiseBuffer(audioCtx);
-    brownNoiseSource.loop = true;
+        // Setup media session for lock screen controls
+        setupMediaSession();
 
-    gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 1);
-
-    brownNoiseSource.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    brownNoiseSource.start();
-
-    isPlaying = true;
-    playBtn.classList.add('playing');
-    statusText.textContent = "STOP";
-    volumeRing.classList.add('active');
-    updateVolumeRing();
-    showHint();
-
-    // Setup media session for lock screen controls
-    setupMediaSession();
-
-    // Update media session playback state
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
+        // Update media session playback state
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
+        }
+    } catch (error) {
+        console.error('Failed to start audio:', error);
     }
 }
 
 function stopNoise() {
-    if (brownNoiseSource) {
-        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    if (audioElement) {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+    }
 
-        setTimeout(() => {
-            brownNoiseSource.stop();
-            brownNoiseSource.disconnect();
-            isPlaying = false;
-        }, 500);
+    isPlaying = false;
+    playBtn.classList.remove('playing');
+    statusText.textContent = "START";
+    volumeRing.classList.remove('active');
+    volumeRing.classList.remove('adjusting');
+    lastAngle = null;
 
-        // Stop silent audio
-        if (silentAudio) {
-            silentAudio.pause();
-            silentAudio.currentTime = 0;
-        }
-
-        playBtn.classList.remove('playing');
-        statusText.textContent = "START";
-        volumeRing.classList.remove('active');
-        volumeRing.classList.remove('adjusting');
-        lastAngle = null;
-
-        // Update media session playback state
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'paused';
-        }
+    // Update media session playback state
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
     }
 }
+
+// Preload audio on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initAudio();
+});
