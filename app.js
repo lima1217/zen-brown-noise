@@ -207,6 +207,29 @@ function handleTouchEnd() {
     isTracking = false;
 }
 
+// Initialize lastAngle on touch start for smoother gesture
+function handleTouchStart(e) {
+    if (!isPlaying || e.touches.length === 0) return;
+
+    const touch = e.touches[0];
+    const center = getButtonCenter();
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+
+    const dx = touchX - center.x;
+    const dy = touchY - center.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const innerRadius = center.radius;
+    const outerRadius = center.radius + 120;
+
+    if (distance > innerRadius && distance < outerRadius) {
+        lastAngle = getAngle(center.x, center.y, touchX, touchY);
+        isTracking = true;
+    }
+}
+
+document.addEventListener('touchstart', handleTouchStart, { passive: true });
 document.addEventListener('touchmove', handleTouchMove, { passive: false });
 document.addEventListener('touchend', handleTouchEnd);
 document.addEventListener('touchcancel', handleTouchEnd);
