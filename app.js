@@ -3,34 +3,49 @@ const statusText = playBtn.querySelector('.status-text');
 const volumeRing = document.getElementById('volumeRing');
 const hintText = document.getElementById('hintText');
 
-// Use HTML5 Audio for iOS background playback support
-// Store in window object for PWA compatibility
 let isPlaying = false;
 let volume = 0.5;
+
+// Audio Context and Nodes
+let audioContext = null;
+let gainNode = null;
+let brownNoiseSource = null;
+const BUFFER_SIZE = 10 * 44100; // 10 seconds buffer
 
 // Circular gesture tracking
 let lastAngle = null;
 let isTracking = false;
 const SENSITIVITY = 0.002;
 
-// Initialize audio element in window object for PWA compatibility
+// Initialize AudioContext
 function initAudio() {
-    if (window.brownNoiseAudio) return window.brownNoiseAudio;
-
-    window.brownNoiseAudio = new Audio('brown-noise.mp3');
-    window.brownNoiseAudio.loop = true;
-    window.brownNoiseAudio.volume = volume;
-    window.brownNoiseAudio.preload = 'auto';
-
-    // Handle audio errors
-    window.brownNoiseAudio.onerror = (e) => {
-        console.error('Audio error:', e);
-    };
-
-    return window.brownNoiseAudio;
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+        gainNode.gain.value = volume;
+    }
+    // Resume context if suspended (browser policy)
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
 }
 
-// Setup Media Session API for lock screen controls
+// Generate Brown Noise Buffer
+function createBrownNoiseBuffer() {
+    const buffer = audioContext.createBuffer(1, BUFFER_SIZE, audioContext.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    let lastOut = 0;
+    for (let i = 0; i < BUFFER_SIZE; i++) {
+        const white = Math.random() * 2 - 1;
+        lastOut = (lastOut + (0.02 * white)) / 1.02;
+        data[i] = lastOut * 3.5; // Compensate for gain loss
+    }
+    return buffer;
+}
+
+// Setup Media Session API (Simplified for generated audio)
 function setupMediaSession() {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -42,14 +57,14 @@ function setupMediaSession() {
             ]
         });
 
+        // Background play handlers might not work perfectly without an HTMLAudioElement 
+        // playing content, but we'll register them anyway.
         navigator.mediaSession.setActionHandler('play', () => {
             if (!isPlaying) startNoise();
         });
-
         navigator.mediaSession.setActionHandler('pause', () => {
             if (isPlaying) stopNoise();
         });
-
         navigator.mediaSession.setActionHandler('stop', () => {
             if (isPlaying) stopNoise();
         });
@@ -67,8 +82,9 @@ function updateVolumeRing() {
     volumeRing.style.setProperty('--volume-intensity', intensity);
 
     // Update audio volume
-    if (window.brownNoiseAudio) {
-        window.brownNoiseAudio.volume = volume;
+    if (gainNode) {
+        // Smooth transition to avoid clicking
+        gainNode.gain.setTargetAtTime(volume, audioContext.currentTime, 0.01);
     }
 }
 
@@ -184,11 +200,7 @@ function handleTouchMove(e) {
             volume += delta * SENSITIVITY;
             volume = Math.max(0, Math.min(1, volume));
 
-            // Directly update audio volume
-            if (window.brownNoiseAudio) {
-                window.brownNoiseAudio.volume = volume;
-            }
-
+            // Directly update audio volume logic incorporated in updateVolumeRing
             updateVolumeRing();
         }
 
@@ -234,28 +246,27 @@ document.addEventListener('touchmove', handleTouchMove, { passive: false });
 document.addEventListener('touchend', handleTouchEnd);
 document.addEventListener('touchcancel', handleTouchEnd);
 
-// Handle page visibility changes
+// Handle page visibility changes - minimal logic for generated audio
+// We generally want it to stop if the page is hidden if we can't sustain it, 
+// OR keep playing if the browser allows. With standard WebAudio, it might pause automatically
+// when backgrounded on mobile, which is what the user accepted ("give up background playback").
 document.addEventListener('visibilitychange', () => {
-    if (window.brownNoiseAudio && isPlaying) {
-        if (document.visibilityState === 'visible') {
-            // Resume if paused
-            if (window.brownNoiseAudio.paused) {
-                window.brownNoiseAudio.play().catch(() => { });
-            }
-        }
-    }
+    // Optional: Auto-pause or resume logic could go here, 
+    // but the user's request specifically mentions "giving up background playback",
+    // implying we rely on the browser's default behavior for active tabs.
 });
 
 async function startNoise() {
-    const audio = initAudio();
-
     try {
-        // Chrome requires user interaction - this should work since we're in a click handler
-        const playPromise = audio.play();
+        initAudio();
 
-        if (playPromise !== undefined) {
-            await playPromise;
-        }
+        // Create source
+        brownNoiseSource = audioContext.createBufferSource();
+        brownNoiseSource.buffer = createBrownNoiseBuffer();
+        brownNoiseSource.loop = true;
+        brownNoiseSource.connect(gainNode);
+
+        brownNoiseSource.start(0);
 
         isPlaying = true;
         playBtn.classList.add('playing');
@@ -264,16 +275,13 @@ async function startNoise() {
         updateVolumeRing();
         showHint();
 
-        // Setup media session for lock screen controls
+        // Setup media session
         setupMediaSession();
-
-        // Update media session playback state
         if ('mediaSession' in navigator) {
             navigator.mediaSession.playbackState = 'playing';
         }
     } catch (error) {
         console.error('Failed to start audio:', error);
-        // Show error to user
         statusText.textContent = "ERROR";
         setTimeout(() => {
             statusText.textContent = "START";
@@ -282,9 +290,14 @@ async function startNoise() {
 }
 
 function stopNoise() {
-    if (window.brownNoiseAudio) {
-        window.brownNoiseAudio.pause();
-        window.brownNoiseAudio.currentTime = 0;
+    if (brownNoiseSource) {
+        try {
+            brownNoiseSource.stop();
+            brownNoiseSource.disconnect();
+        } catch (e) {
+            // Ignore if already stopped
+        }
+        brownNoiseSource = null;
     }
 
     isPlaying = false;
@@ -294,13 +307,7 @@ function stopNoise() {
     volumeRing.classList.remove('adjusting');
     lastAngle = null;
 
-    // Update media session playback state
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
     }
 }
-
-// Preload audio on page load
-document.addEventListener('DOMContentLoaded', () => {
-    initAudio();
-});
