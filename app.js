@@ -17,6 +17,9 @@ let lastAngle = null;
 let isTracking = false;
 const SENSITIVITY = 0.002;
 
+// iOS PWA audio unlock state
+let audioUnlocked = false;
+
 // Initialize AudioContext
 function initAudio() {
     if (!audioContext) {
@@ -29,6 +32,29 @@ function initAudio() {
     if (audioContext.state === 'suspended') {
         audioContext.resume();
     }
+}
+
+// iOS PWA needs explicit audio unlock via user gesture
+// This plays a silent buffer to "unlock" the audio context
+function unlockAudioForIOS() {
+    if (audioUnlocked) return Promise.resolve();
+
+    initAudio();
+
+    // Create a tiny silent buffer
+    const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+    const source = audioContext.createBufferSource();
+    source.buffer = silentBuffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+
+    // Also explicitly resume
+    return audioContext.resume().then(() => {
+        audioUnlocked = true;
+        console.log('Audio unlocked for iOS PWA');
+    }).catch(e => {
+        console.warn('Audio unlock failed:', e);
+    });
 }
 
 // Generate Brown Noise Buffer
@@ -258,6 +284,9 @@ document.addEventListener('visibilitychange', () => {
 
 async function startNoise() {
     try {
+        // Unlock audio for iOS PWA first
+        await unlockAudioForIOS();
+
         initAudio();
 
         // Create source
