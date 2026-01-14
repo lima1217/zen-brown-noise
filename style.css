@@ -1,14 +1,30 @@
 :root {
-    /* New Palette: Green, Yellow, Blue */
-    --color-green: #119352;
-    --color-yellow: #FFF200;
-    --color-blue: #1A439B;
+    /* Organic Brown Noise Palette - Scheme B */
+    --color-brown: #8B6914;
+    /* Warm coffee brown */
+    --color-brown-deep: #6B4423;
+    /* Deep terracotta */
+    --color-brown-light: #A67C52;
+    /* Light caramel */
+    --color-sand: #D4A574;
+    /* Golden sand */
+    --color-cream: #F9F5EE;
+    /* Warm cream background */
+    --color-cream-dark: #EDE4D3;
+    /* Darker cream for contrast */
+    --color-sage: #A8C69F;
+    /* Soft sage green accent */
+    --color-sage-muted: #C5D9BE;
+    /* Muted sage for rings */
+    --color-text: #5D4E37;
+    /* Warm brown text color */
+    --color-text-muted: #8B7355;
+    /* Muted brown for secondary text */
 
-    --bg-color: #F8F9FA;
-    /* Keeping a clean neutral background */
-    --active-color: var(--color-green);
-    --muted-color: var(--color-blue);
-    --ring-color: var(--color-yellow);
+    --bg-color: var(--color-cream);
+    --active-color: var(--color-brown);
+    --muted-color: var(--color-brown-light);
+    --ring-color: var(--color-sand);
 }
 
 * {
@@ -18,9 +34,13 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg-color);
-    color: var(--color-dark);
+    /* Subtle paper texture */
+    background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(212, 165, 116, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(168, 198, 159, 0.06) 0%, transparent 50%);
+    color: var(--color-text);
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -44,17 +64,23 @@ body {
     gap: 30px;
 }
 
-/* Ink Wash Volume Ring - 水墨晕染效果 */
+/* Organic Concentric Rings - 有机同心圆效果 */
 .volume-ring {
     position: relative;
-    width: 320px;
-    height: 320px;
+    width: 340px;
+    height: 340px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
     /* Disable default touch actions for gesture control */
     touch-action: none;
+    /* Concentric ring decoration lines */
+    background:
+        radial-gradient(circle, transparent 62%, var(--color-sand) 62.5%, var(--color-sand) 63%, transparent 63.5%),
+        radial-gradient(circle, transparent 72%, var(--color-sage-muted) 72.5%, var(--color-sage-muted) 73%, transparent 73.5%),
+        radial-gradient(circle, transparent 82%, var(--color-sage-muted) 82.5%, var(--color-sage-muted) 83%, transparent 83.5%),
+        radial-gradient(circle, transparent 92%, var(--color-sage-muted) 92.5%, var(--color-sage-muted) 93%, transparent 93.5%);
 }
 
 /* Ink wash layers for organic look */
@@ -67,37 +93,34 @@ body {
     transition: opacity 0.5s ease;
 }
 
-/* Outer ink wash layer - more tangible (stronger opacity, less blur) */
+/* Outer organic glow layer - warm sand gradient */
 .volume-ring::before {
     width: 100%;
     height: 100%;
     opacity: var(--volume-intensity, 0.5);
     background: radial-gradient(circle at center,
-            transparent 50%,
-            rgba(255, 242, 0, 0.4) 60%,
-            rgba(255, 242, 0, 0.7) 75%,
-            /* Stronger center */
-            rgba(255, 242, 0, 0.3) 90%,
+            transparent 45%,
+            rgba(212, 165, 116, 0.3) 55%,
+            rgba(212, 165, 116, 0.6) 70%,
+            rgba(168, 198, 159, 0.3) 85%,
             transparent 100%);
-    filter: blur(8px);
-    /* Reduced blur for 'tangible' feel */
+    filter: blur(12px);
     transform: scale(var(--volume-scale, 1));
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* Inner ink wash layer */
+/* Inner organic glow layer - golden amber center */
 .volume-ring::after {
-    width: 85%;
-    height: 85%;
+    width: 80%;
+    height: 80%;
     opacity: var(--volume-intensity, 0.5);
     background: radial-gradient(circle at center,
-            transparent 55%,
-            rgba(255, 242, 0, 0.5) 65%,
-            rgba(255, 242, 0, 0.8) 80%,
-            rgba(255, 242, 0, 0.4) 95%,
+            transparent 50%,
+            rgba(212, 165, 116, 0.4) 60%,
+            rgba(139, 105, 20, 0.5) 75%,
+            rgba(212, 165, 116, 0.3) 90%,
             transparent 100%);
-    filter: blur(4px);
-    /* Sharper */
+    filter: blur(6px);
     transform: scale(var(--volume-scale, 1));
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -129,21 +152,19 @@ body {
 }
 
 .volume-ring.adjusting::before {
-    filter: blur(12px);
+    filter: blur(16px);
 }
 
 .volume-ring.adjusting::after {
-    filter: blur(6px);
+    filter: blur(10px);
 }
 
-/* Zen Circle - Podcast inspired minimal circle */
+/* Organic Zen Circle - watercolor inspired button */
 .zen-circle {
     position: relative;
     z-index: 10;
-    /* Ensure on top */
-    width: 180px;
-    height: 180px;
-    /* Removed background-color here to separate blur */
+    width: 160px;
+    height: 160px;
     background-color: transparent;
     border-radius: 50%;
     display: flex;
@@ -153,10 +174,9 @@ body {
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     border: none;
-    /* Reset from Enso style */
 }
 
-/* The actual colored circle with blur */
+/* The actual colored circle with organic watercolor effect */
 .zen-circle::before {
     content: '';
     position: absolute;
@@ -165,17 +185,19 @@ body {
     right: 0;
     bottom: 0;
     border-radius: 50%;
-    background-color: var(--muted-color);
-    filter: blur(3px);
-    /* "Blur a little bit" */
+    background: radial-gradient(circle at 40% 40%,
+            var(--color-brown-light) 0%,
+            var(--color-brown) 50%,
+            var(--color-brown-deep) 100%);
+    filter: blur(2px);
     transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: -1;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(139, 105, 20, 0.25);
 }
 
 .zen-circle:hover::before {
-    transform: scale(1.03);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(139, 105, 20, 0.35);
 }
 
 .zen-circle:hover {
@@ -207,7 +229,10 @@ body {
 }
 
 .zen-circle.playing::before {
-    background-color: var(--active-color);
+    background: radial-gradient(circle at 40% 40%,
+            var(--color-sand) 0%,
+            var(--color-brown) 50%,
+            var(--color-brown-deep) 100%);
     animation: gentlePulse 4s infinite ease-in-out;
 }
 
@@ -216,39 +241,145 @@ body {
     animation: none;
 }
 
-/* More obvious breathing rhythm for center */
+/* Organic breathing rhythm for center button */
 @keyframes gentlePulse {
     0% {
         transform: scale(1);
-        box-shadow: 0 8px 24px rgba(17, 147, 82, 0.3);
-        filter: blur(3px);
+        box-shadow: 0 8px 32px rgba(139, 105, 20, 0.3);
+        filter: blur(2px);
     }
 
     50% {
-        transform: scale(1.08);
-        /* Stronger pulse */
-        box-shadow: 0 15px 40px rgba(17, 147, 82, 0.5);
-        filter: blur(5px);
-        /* Breathe blur too */
+        transform: scale(1.06);
+        box-shadow: 0 12px 48px rgba(139, 105, 20, 0.45);
+        filter: blur(4px);
     }
 
     100% {
         transform: scale(1);
-        box-shadow: 0 8px 24px rgba(17, 147, 82, 0.3);
-        filter: blur(3px);
+        box-shadow: 0 8px 32px rgba(139, 105, 20, 0.3);
+        filter: blur(2px);
     }
 }
 
 /* Hint Text */
 .hint-text {
-    color: var(--color-dark);
+    color: var(--color-text-muted);
     font-size: 0.85rem;
-    font-weight: 300;
+    font-weight: 400;
     letter-spacing: 0.08rem;
     opacity: 0;
     transition: opacity 0.5s ease;
 }
 
 .hint-text.visible {
-    opacity: 0.5;
+    opacity: 0.7;
+}
+
+/* Volume Indicator - Arc progress */
+.volume-indicator {
+    position: absolute;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.volume-indicator.visible {
+    opacity: 1;
+}
+
+.volume-value {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-brown);
+    letter-spacing: 0.05rem;
+}
+
+.volume-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+}
+
+/* Concentric Ring Pulse Animation */
+@keyframes ringPulse1 {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes ringPulse2 {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.25;
+        transform: scale(1.015);
+    }
+}
+
+@keyframes ringPulse3 {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.2;
+        transform: scale(1.01);
+    }
+}
+
+.volume-ring.active {
+    will-change: transform;
+}
+
+/* Performance optimization */
+.zen-circle::before {
+    will-change: transform, box-shadow, filter;
+}
+
+.volume-ring::before,
+.volume-ring::after {
+    will-change: transform, opacity, filter;
+}
+
+/* Haptic feedback pulse - visual only since we can't do real haptics in browser */
+@keyframes hapticPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.98);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.zen-circle.haptic {
+    animation: hapticPulse 0.1s ease;
 }

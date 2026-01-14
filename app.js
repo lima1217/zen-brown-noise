@@ -2,9 +2,13 @@ const playBtn = document.getElementById('playBtn');
 const statusText = playBtn.querySelector('.status-text');
 const volumeRing = document.getElementById('volumeRing');
 const hintText = document.getElementById('hintText');
+const volumeIndicator = document.getElementById('volumeIndicator');
+const volumeValue = document.getElementById('volumeValue');
 
 let isPlaying = false;
-let volume = 0.5;
+
+// Load saved volume from localStorage, default to 0.5
+let volume = parseFloat(localStorage.getItem('zenBrownNoiseVolume')) || 0.5;
 
 // Audio Context and Nodes
 let audioContext = null;
@@ -107,10 +111,21 @@ function updateVolumeRing() {
     volumeRing.style.setProperty('--volume-scale', scale);
     volumeRing.style.setProperty('--volume-intensity', intensity);
 
+    // Update volume indicator display
+    volumeValue.textContent = Math.round(volume * 100) + '%';
+
+    // Save volume to localStorage
+    localStorage.setItem('zenBrownNoiseVolume', volume.toString());
+
     // Update audio volume
     if (gainNode) {
         // Smooth transition to avoid clicking
         gainNode.gain.setTargetAtTime(volume, audioContext.currentTime, 0.01);
+    }
+
+    // Trigger haptic feedback on mobile (if available)
+    if ('vibrate' in navigator && isTracking) {
+        navigator.vibrate(5); // Very short vibration
     }
 }
 
@@ -304,6 +319,9 @@ async function startNoise() {
         updateVolumeRing();
         showHint();
 
+        // Show volume indicator
+        volumeIndicator.classList.add('visible');
+
         // Setup media session
         setupMediaSession();
         if ('mediaSession' in navigator) {
@@ -336,7 +354,27 @@ function stopNoise() {
     volumeRing.classList.remove('adjusting');
     lastAngle = null;
 
+    // Hide volume indicator
+    volumeIndicator.classList.remove('visible');
+
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
     }
 }
+
+// ==================== INITIALIZATION ====================
+
+// Initialize volume display on page load
+function init() {
+    // Set initial volume display
+    volumeValue.textContent = Math.round(volume * 100) + '%';
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered:', reg.scope))
+            .catch(err => console.log('Service Worker registration failed:', err));
+    }
+}
+
+init();

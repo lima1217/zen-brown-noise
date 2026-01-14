@@ -8,24 +8,35 @@
     <!-- Google Fonts - Quicksand for zen rounded style -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <meta name="description" content="A minimalist brown noise generator for ADHD focus.">
+    <meta name="description" content="A minimalist brown noise generator for ADHD focus and deep relaxation.">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
     <!-- PWA & iOS Support -->
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Brown Noise">
-    <meta name="theme-color" content="#F8F9FA">
+    <meta name="theme-color" content="#F9F5EE">
 </head>
 
 <body>
     <main class="container">
+        <!-- Main Control -->
         <div class="volume-ring" id="volumeRing">
             <div class="zen-circle" id="playBtn" role="button" aria-label="Toggle Brown Noise">
                 <span class="status-text">START</span>
             </div>
         </div>
+
+        <!-- Volume Indicator -->
+        <div class="volume-indicator" id="volumeIndicator">
+            <span class="volume-value" id="volumeValue">50%</span>
+            <span class="volume-label">Volume</span>
+        </div>
+
         <div class="hint-text" id="hintText">Circle around to adjust volume</div>
     </main>
     <script src="app.js"></script>
