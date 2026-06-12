@@ -3,43 +3,62 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus | Brown Noise</title>
-    <!-- Google Fonts - Quicksand for zen rounded style -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zen Brown Noise</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20260612-control-system">
     <meta name="description" content="A minimalist brown noise generator for ADHD focus and deep relaxation.">
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png">
-    <!-- PWA & iOS Support -->
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Brown Noise">
-    <meta name="theme-color" content="#F9F5EE">
+    <meta name="theme-color" content="#F3EBDD">
 </head>
 
 <body>
-    <main class="container">
-        <!-- Main Control -->
-        <div class="volume-ring" id="volumeRing">
-            <div class="zen-circle" id="playBtn" role="button" aria-label="Toggle Brown Noise">
-                <span class="status-text">START</span>
+    <main class="zen-field" aria-label="Zen brown noise player">
+        <div class="wave-field" aria-hidden="true">
+            <span class="cloud-layer cloud-layer-a">
+                <span class="cloud-puff cloud-puff-a"></span>
+                <span class="cloud-puff cloud-puff-b"></span>
+                <span class="cloud-puff cloud-puff-c"></span>
+            </span>
+            <span class="cloud-layer cloud-layer-b">
+                <span class="cloud-puff cloud-puff-a"></span>
+                <span class="cloud-puff cloud-puff-b"></span>
+                <span class="cloud-puff cloud-puff-c"></span>
+            </span>
+            <span class="cloud-layer cloud-layer-c">
+                <span class="cloud-puff cloud-puff-a"></span>
+                <span class="cloud-puff cloud-puff-b"></span>
+                <span class="cloud-puff cloud-puff-c"></span>
+            </span>
+        </div>
+
+        <section class="player-stack" aria-label="Playback controls">
+            <button class="zen-dial" id="playBtn" type="button" aria-label="Play brown noise" aria-pressed="false">
+                <span class="dial-face" aria-hidden="true">
+                    <svg class="sound-glyph" viewBox="0 0 96 64" aria-hidden="true">
+                        <path class="glyph-line glyph-line-a" d="M17 36 C 28 26, 38 26, 49 36 S 70 46, 81 36" />
+                        <path class="glyph-line glyph-line-b" d="M17 27 C 28 17, 38 17, 49 27 S 70 37, 81 27" />
+                    </svg>
+                </span>
+            </button>
+
+            <div class="volume-console" aria-label="Volume control">
+                <input class="volume-slider" id="volumeSlider" type="range" min="0" max="100" value="50" aria-label="Volume">
+                <span class="volume-value" id="volumeValue" aria-live="polite">50</span>
             </div>
-        </div>
-
-        <!-- Volume Indicator -->
-        <div class="volume-indicator" id="volumeIndicator">
-            <span class="volume-value" id="volumeValue">50%</span>
-            <span class="volume-label">Volume</span>
-        </div>
-
-        <div class="hint-text" id="hintText">Circle around to adjust volume</div>
+        </section>
     </main>
-    <script src="app.js"></script>
+
+    <script src="app.js?v=20260612-control-system"></script>
 </body>
 
 </html>

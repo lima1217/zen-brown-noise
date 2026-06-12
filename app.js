@@ -1,30 +1,18 @@
 const playBtn = document.getElementById('playBtn');
-const statusText = playBtn.querySelector('.status-text');
-const volumeRing = document.getElementById('volumeRing');
-const hintText = document.getElementById('hintText');
-const volumeIndicator = document.getElementById('volumeIndicator');
+const volumeSlider = document.getElementById('volumeSlider');
 const volumeValue = document.getElementById('volumeValue');
 
 let isPlaying = false;
+const savedVolume = parseFloat(localStorage.getItem('zenBrownNoiseVolume'));
+let volume = Number.isFinite(savedVolume) ? Math.max(0, Math.min(1, savedVolume)) : 0.5;
 
-// Load saved volume from localStorage, default to 0.5
-let volume = parseFloat(localStorage.getItem('zenBrownNoiseVolume')) || 0.5;
-
-// Audio Context and Nodes
 let audioContext = null;
 let gainNode = null;
 let brownNoiseSource = null;
-const BUFFER_SIZE = 10 * 44100; // 10 seconds buffer
+const BUFFER_SIZE = 10 * 44100;
 
-// Circular gesture tracking
-let lastAngle = null;
-let isTracking = false;
-const SENSITIVITY = 0.002;
-
-// iOS PWA audio unlock state
 let audioUnlocked = false;
 
-// Initialize AudioContext
 function initAudio() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -32,36 +20,30 @@ function initAudio() {
         gainNode.connect(audioContext.destination);
         gainNode.gain.value = volume;
     }
-    // Resume context if suspended (browser policy)
+
     if (audioContext.state === 'suspended') {
         audioContext.resume();
     }
 }
 
-// iOS PWA needs explicit audio unlock via user gesture
-// This plays a silent buffer to "unlock" the audio context
 function unlockAudioForIOS() {
     if (audioUnlocked) return Promise.resolve();
 
     initAudio();
 
-    // Create a tiny silent buffer
     const silentBuffer = audioContext.createBuffer(1, 1, 22050);
     const source = audioContext.createBufferSource();
     source.buffer = silentBuffer;
     source.connect(audioContext.destination);
     source.start(0);
 
-    // Also explicitly resume
     return audioContext.resume().then(() => {
         audioUnlocked = true;
-        console.log('Audio unlocked for iOS PWA');
-    }).catch(e => {
-        console.warn('Audio unlock failed:', e);
+    }).catch((error) => {
+        console.warn('Audio unlock failed:', error);
     });
 }
 
-// Generate Brown Noise Buffer
 function createBrownNoiseBuffer() {
     const buffer = audioContext.createBuffer(1, BUFFER_SIZE, audioContext.sampleRate);
     const data = buffer.getChannelData(0);
@@ -70,269 +52,82 @@ function createBrownNoiseBuffer() {
     for (let i = 0; i < BUFFER_SIZE; i++) {
         const white = Math.random() * 2 - 1;
         lastOut = (lastOut + (0.02 * white)) / 1.02;
-        data[i] = lastOut * 3.5; // Compensate for gain loss
+        data[i] = lastOut * 3.5;
     }
+
     return buffer;
 }
 
-// Setup Media Session API (Simplified for generated audio)
 function setupMediaSession() {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: 'Brown Noise',
-            artist: 'Zen Focus',
-            album: 'Ambient Sounds',
-            artwork: [
-                { src: 'apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
-            ]
-        });
+    if (!('mediaSession' in navigator)) return;
 
-        // Background play handlers might not work perfectly without an HTMLAudioElement 
-        // playing content, but we'll register them anyway.
-        navigator.mediaSession.setActionHandler('play', () => {
-            if (!isPlaying) startNoise();
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-            if (isPlaying) stopNoise();
-        });
-        navigator.mediaSession.setActionHandler('stop', () => {
-            if (isPlaying) stopNoise();
-        });
-    }
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'Brown Noise',
+        artist: 'Zen Focus',
+        album: 'Ambient Sounds',
+        artwork: [
+            { src: 'apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+        ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => {
+        if (!isPlaying) startNoise();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+        if (isPlaying) stopNoise();
+    });
+    navigator.mediaSession.setActionHandler('stop', () => {
+        if (isPlaying) stopNoise();
+    });
 }
 
-// Update ink wash visual feedback - scale and intensity based on volume
-function updateVolumeRing() {
-    // Scale from 0.8 to 1.3
-    const scale = 0.8 + (volume * 0.5);
-    // Intensity (opacity) from 0.1 to 0.9 based on volume
-    const intensity = 0.1 + (volume * 0.8);
+function updateVisualState() {
+    const percentage = Math.round(volume * 100);
 
-    volumeRing.style.setProperty('--volume-scale', scale);
-    volumeRing.style.setProperty('--volume-intensity', intensity);
+    document.documentElement.style.setProperty('--volume-percent', `${percentage}%`);
+    volumeSlider.value = percentage.toString();
+    volumeValue.textContent = percentage.toString();
 
-    // Update volume indicator display
-    volumeValue.textContent = Math.round(volume * 100) + '%';
-
-    // Save volume to localStorage
     localStorage.setItem('zenBrownNoiseVolume', volume.toString());
 
-    // Update audio volume
-    if (gainNode) {
-        // Smooth transition to avoid clicking
+    if (gainNode && audioContext) {
         gainNode.gain.setTargetAtTime(volume, audioContext.currentTime, 0.01);
     }
-
-    // Trigger haptic feedback on mobile (if available)
-    if ('vibrate' in navigator && isTracking) {
-        navigator.vibrate(5); // Very short vibration
-    }
 }
 
-// Calculate angle from center of button to mouse position
-function getAngle(centerX, centerY, mouseX, mouseY) {
-    const dx = mouseX - centerX;
-    const dy = mouseY - centerY;
-    let angle = Math.atan2(dx, -dy) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
-    return angle;
+function setPlayingState(nextPlaying) {
+    isPlaying = nextPlaying;
+    playBtn.classList.toggle('playing', isPlaying);
+    playBtn.setAttribute('aria-pressed', isPlaying.toString());
+    playBtn.setAttribute('aria-label', isPlaying ? 'Pause brown noise' : 'Play brown noise');
 }
-
-// Get center of the play button
-function getButtonCenter() {
-    const rect = playBtn.getBoundingClientRect();
-    return {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        radius: rect.width / 2
-    };
-}
-
-// Handle mouse move for circular gesture
-function handleMouseMove(e) {
-    if (!isPlaying) return;
-
-    const center = getButtonCenter();
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-
-    const dx = mouseX - center.x;
-    const dy = mouseY - center.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    const innerRadius = center.radius;
-    const outerRadius = center.radius + 120;
-
-    if (distance > innerRadius && distance < outerRadius) {
-        volumeRing.classList.add('adjusting');
-
-        const currentAngle = getAngle(center.x, center.y, mouseX, mouseY);
-
-        if (lastAngle !== null) {
-            let delta = currentAngle - lastAngle;
-
-            if (delta > 180) delta -= 360;
-            if (delta < -180) delta += 360;
-
-            volume += delta * SENSITIVITY;
-            volume = Math.max(0, Math.min(1, volume));
-
-            updateVolumeRing();
-        }
-
-        lastAngle = currentAngle;
-        isTracking = true;
-    } else {
-        volumeRing.classList.remove('adjusting');
-        lastAngle = null;
-        isTracking = false;
-    }
-}
-
-// Show hint when playing starts
-function showHint() {
-    hintText.classList.add('visible');
-    setTimeout(() => {
-        hintText.classList.remove('visible');
-    }, 3000);
-}
-
-playBtn.addEventListener('click', () => {
-    if (!isPlaying) {
-        startNoise();
-    } else {
-        stopNoise();
-    }
-});
-
-// Desktop: mouse move for circular gesture
-document.addEventListener('mousemove', handleMouseMove);
-
-// Mobile: touch events for circular gesture
-function handleTouchMove(e) {
-    if (!isPlaying || e.touches.length === 0) return;
-
-    // Prevent scrolling while adjusting volume
-    e.preventDefault();
-
-    const touch = e.touches[0];
-    const center = getButtonCenter();
-    const touchX = touch.clientX;
-    const touchY = touch.clientY;
-
-    const dx = touchX - center.x;
-    const dy = touchY - center.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    const innerRadius = center.radius;
-    const outerRadius = center.radius + 120;
-
-    if (distance > innerRadius && distance < outerRadius) {
-        volumeRing.classList.add('adjusting');
-
-        const currentAngle = getAngle(center.x, center.y, touchX, touchY);
-
-        if (lastAngle !== null) {
-            let delta = currentAngle - lastAngle;
-
-            if (delta > 180) delta -= 360;
-            if (delta < -180) delta += 360;
-
-            volume += delta * SENSITIVITY;
-            volume = Math.max(0, Math.min(1, volume));
-
-            // Directly update audio volume logic incorporated in updateVolumeRing
-            updateVolumeRing();
-        }
-
-        lastAngle = currentAngle;
-        isTracking = true;
-    } else {
-        volumeRing.classList.remove('adjusting');
-        lastAngle = null;
-        isTracking = false;
-    }
-}
-
-function handleTouchEnd() {
-    volumeRing.classList.remove('adjusting');
-    lastAngle = null;
-    isTracking = false;
-}
-
-// Initialize lastAngle on touch start for smoother gesture
-function handleTouchStart(e) {
-    if (!isPlaying || e.touches.length === 0) return;
-
-    const touch = e.touches[0];
-    const center = getButtonCenter();
-    const touchX = touch.clientX;
-    const touchY = touch.clientY;
-
-    const dx = touchX - center.x;
-    const dy = touchY - center.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    const innerRadius = center.radius;
-    const outerRadius = center.radius + 120;
-
-    if (distance > innerRadius && distance < outerRadius) {
-        lastAngle = getAngle(center.x, center.y, touchX, touchY);
-        isTracking = true;
-    }
-}
-
-document.addEventListener('touchstart', handleTouchStart, { passive: true });
-document.addEventListener('touchmove', handleTouchMove, { passive: false });
-document.addEventListener('touchend', handleTouchEnd);
-document.addEventListener('touchcancel', handleTouchEnd);
-
-// Handle page visibility changes - minimal logic for generated audio
-// We generally want it to stop if the page is hidden if we can't sustain it, 
-// OR keep playing if the browser allows. With standard WebAudio, it might pause automatically
-// when backgrounded on mobile, which is what the user accepted ("give up background playback").
-document.addEventListener('visibilitychange', () => {
-    // Optional: Auto-pause or resume logic could go here, 
-    // but the user's request specifically mentions "giving up background playback",
-    // implying we rely on the browser's default behavior for active tabs.
-});
 
 async function startNoise() {
     try {
-        // Unlock audio for iOS PWA first
         await unlockAudioForIOS();
-
         initAudio();
 
-        // Create source
+        if (brownNoiseSource) {
+            brownNoiseSource.stop();
+            brownNoiseSource.disconnect();
+        }
+
         brownNoiseSource = audioContext.createBufferSource();
         brownNoiseSource.buffer = createBrownNoiseBuffer();
         brownNoiseSource.loop = true;
         brownNoiseSource.connect(gainNode);
-
         brownNoiseSource.start(0);
 
-        isPlaying = true;
-        playBtn.classList.add('playing');
-        statusText.textContent = "STOP";
-        volumeRing.classList.add('active');
-        updateVolumeRing();
-        showHint();
-
-        // Show volume indicator
-        volumeIndicator.classList.add('visible');
-
-        // Setup media session
+        setPlayingState(true);
+        updateVisualState();
         setupMediaSession();
+
         if ('mediaSession' in navigator) {
             navigator.mediaSession.playbackState = 'playing';
         }
     } catch (error) {
         console.error('Failed to start audio:', error);
-        statusText.textContent = "ERROR";
-        setTimeout(() => {
-            statusText.textContent = "START";
-        }, 2000);
+        window.setTimeout(() => setPlayingState(false), 1600);
     }
 }
 
@@ -341,39 +136,53 @@ function stopNoise() {
         try {
             brownNoiseSource.stop();
             brownNoiseSource.disconnect();
-        } catch (e) {
-            // Ignore if already stopped
+        } catch (error) {
+            console.warn('Audio source already stopped:', error);
         }
+
         brownNoiseSource = null;
     }
 
-    isPlaying = false;
-    playBtn.classList.remove('playing');
-    statusText.textContent = "START";
-    volumeRing.classList.remove('active');
-    volumeRing.classList.remove('adjusting');
-    lastAngle = null;
-
-    // Hide volume indicator
-    volumeIndicator.classList.remove('visible');
+    setPlayingState(false);
 
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
     }
 }
 
-// ==================== INITIALIZATION ====================
+function toggleNoise() {
+    if (isPlaying) {
+        stopNoise();
+    } else {
+        startNoise();
+    }
+}
 
-// Initialize volume display on page load
+function handleVolumeInput(event) {
+    const nextVolume = Number(event.target.value) / 100;
+    volume = Math.max(0, Math.min(1, nextVolume));
+    updateVisualState();
+}
+
+playBtn.addEventListener('click', toggleNoise);
+volumeSlider.addEventListener('input', handleVolumeInput);
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isPlaying && audioContext?.state === 'suspended') {
+        audioContext.resume();
+    }
+});
+
 function init() {
-    // Set initial volume display
-    volumeValue.textContent = Math.round(volume * 100) + '%';
+    updateVisualState();
+    setPlayingState(false);
 
-    // Register Service Worker for PWA
-    if ('serviceWorker' in navigator) {
+    const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+
+    if ('serviceWorker' in navigator && location.protocol !== 'file:' && !isLocalHost) {
         navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered:', reg.scope))
-            .catch(err => console.log('Service Worker registration failed:', err));
+            .then((registration) => console.log('Service Worker registered:', registration.scope))
+            .catch((error) => console.log('Service Worker registration failed:', error));
     }
 }
 

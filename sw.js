@@ -1,9 +1,9 @@
-const CACHE_NAME = 'zen-brown-noise-v1.1';
+const CACHE_NAME = 'zen-brown-noise-v2.1-control-system';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/style.css',
-    '/app.js',
+    '/style.css?v=20260612-control-system',
+    '/app.js?v=20260612-control-system',
     '/favicon.png',
     '/apple-touch-icon.png',
     '/manifest.json'
@@ -38,16 +38,35 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch event - serve from cache, fall back to network
+// Fetch event - keep app shell fresh, use cache for static fallback.
 self.addEventListener('fetch', (event) => {
+    const request = event.request;
+    const url = new URL(request.url);
+    const isFreshAsset = request.mode === 'navigate'
+        || url.pathname.endsWith('.html')
+        || url.pathname.endsWith('.css')
+        || url.pathname.endsWith('.js');
+
+    if (isFreshAsset) {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    return response;
+                })
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
+
     event.respondWith(
-        caches.match(event.request)
+        caches.match(request)
             .then((response) => {
-                // Return cached version or fetch from network
                 if (response) {
                     return response;
                 }
-                return fetch(event.request);
+                return fetch(request);
             })
     );
 });

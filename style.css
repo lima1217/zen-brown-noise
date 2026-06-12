@@ -1,30 +1,12 @@
 :root {
-    /* Organic Brown Noise Palette - Scheme B */
-    --color-brown: #8B6914;
-    /* Warm coffee brown */
-    --color-brown-deep: #6B4423;
-    /* Deep terracotta */
-    --color-brown-light: #A67C52;
-    /* Light caramel */
-    --color-sand: #D4A574;
-    /* Golden sand */
-    --color-cream: #F9F5EE;
-    /* Warm cream background */
-    --color-cream-dark: #EDE4D3;
-    /* Darker cream for contrast */
-    --color-sage: #A8C69F;
-    /* Soft sage green accent */
-    --color-sage-muted: #C5D9BE;
-    /* Muted sage for rings */
-    --color-text: #5D4E37;
-    /* Warm brown text color */
-    --color-text-muted: #8B7355;
-    /* Muted brown for secondary text */
-
-    --bg-color: var(--color-cream);
-    --active-color: var(--color-brown);
-    --muted-color: var(--color-brown-light);
-    --ring-color: var(--color-sand);
+    --paper: #f2eadc;
+    --paper-top: #fffaf1;
+    --paper-low: #dfd0bb;
+    --ink: #38402f;
+    --moss: #687251;
+    --moss-deep: #3d4938;
+    --moss-soft: #a1a57d;
+    --volume-percent: 50%;
 }
 
 * {
@@ -33,353 +15,541 @@
     padding: 0;
 }
 
+html,
 body {
-    font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    /* Subtle paper texture */
-    background-image:
-        radial-gradient(ellipse at 20% 30%, rgba(212, 165, 116, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 70%, rgba(168, 198, 159, 0.06) 0%, transparent 50%);
-    color: var(--color-text);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
     overflow: hidden;
-    /* Prevent browser gestures from interfering */
+    color: var(--ink);
+    font-family: "Cormorant Garamond", "Noto Serif SC", Georgia, serif;
+    background:
+        radial-gradient(circle at 50% 24%, rgba(236, 224, 205, 0.24) 0 14%, transparent 34%),
+        radial-gradient(circle at 86% 82%, rgba(112, 98, 70, 0.13), transparent 31%),
+        linear-gradient(145deg, #deceb7 0%, var(--paper) 40%, #fbf4e9 66%, #e1d2be 100%);
     touch-action: manipulation;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
 }
 
-.container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-}
-
-/* Organic Concentric Rings - 有机同心圆效果 */
-.volume-ring {
-    position: relative;
-    width: 340px;
-    height: 340px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    /* Disable default touch actions for gesture control */
-    touch-action: none;
-    /* Concentric ring decoration lines */
-    background:
-        radial-gradient(circle, transparent 62%, var(--color-sand) 62.5%, var(--color-sand) 63%, transparent 63.5%),
-        radial-gradient(circle, transparent 72%, var(--color-sage-muted) 72.5%, var(--color-sage-muted) 73%, transparent 73.5%),
-        radial-gradient(circle, transparent 82%, var(--color-sage-muted) 82.5%, var(--color-sage-muted) 83%, transparent 83.5%),
-        radial-gradient(circle, transparent 92%, var(--color-sage-muted) 92.5%, var(--color-sage-muted) 93%, transparent 93.5%);
-}
-
-/* Ink wash layers for organic look */
-.volume-ring::before,
-.volume-ring::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-/* Outer organic glow layer - warm sand gradient */
-.volume-ring::before {
-    width: 100%;
-    height: 100%;
-    opacity: var(--volume-intensity, 0.5);
-    background: radial-gradient(circle at center,
-            transparent 45%,
-            rgba(212, 165, 116, 0.3) 55%,
-            rgba(212, 165, 116, 0.6) 70%,
-            rgba(168, 198, 159, 0.3) 85%,
-            transparent 100%);
-    filter: blur(12px);
-    transform: scale(var(--volume-scale, 1));
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-/* Inner organic glow layer - golden amber center */
-.volume-ring::after {
-    width: 80%;
-    height: 80%;
-    opacity: var(--volume-intensity, 0.5);
-    background: radial-gradient(circle at center,
-            transparent 50%,
-            rgba(212, 165, 116, 0.4) 60%,
-            rgba(139, 105, 20, 0.5) 75%,
-            rgba(212, 165, 116, 0.3) 90%,
-            transparent 100%);
-    filter: blur(6px);
-    transform: scale(var(--volume-scale, 1));
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.volume-ring.active::before,
-.volume-ring.active::after {
-    /* Base visibility is handled by opacity var, but ensure it's "on" */
-    visibility: visible;
-    animation: ringBreathe 4s infinite ease-in-out;
-    /* Slower, deeper breath */
-}
-
-/* More obvious breathing rhythm */
-@keyframes ringBreathe {
-    0% {
-        transform: scale(var(--volume-scale, 1));
-        opacity: var(--volume-intensity, 0.5);
-    }
-
-    50% {
-        transform: scale(calc(var(--volume-scale, 1) * 1.15));
-        opacity: calc(var(--volume-intensity, 0.5) * 0.7);
-    }
-
-    100% {
-        transform: scale(var(--volume-scale, 1));
-        opacity: var(--volume-intensity, 0.5);
-    }
-}
-
-.volume-ring.adjusting::before {
-    filter: blur(16px);
-}
-
-.volume-ring.adjusting::after {
-    filter: blur(10px);
-}
-
-/* Organic Zen Circle - watercolor inspired button */
-.zen-circle {
-    position: relative;
-    z-index: 10;
-    width: 160px;
-    height: 160px;
-    background-color: transparent;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    border: none;
-}
-
-/* The actual colored circle with organic watercolor effect */
-.zen-circle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at 40% 40%,
-            var(--color-brown-light) 0%,
-            var(--color-brown) 50%,
-            var(--color-brown-deep) 100%);
-    filter: blur(2px);
-    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: -1;
-    box-shadow: 0 8px 32px rgba(139, 105, 20, 0.25);
-}
-
-.zen-circle:hover::before {
-    transform: scale(1.05);
-    box-shadow: 0 12px 40px rgba(139, 105, 20, 0.35);
-}
-
-.zen-circle:hover {
-    transform: none;
-    /* Move scale to pseudo element */
-}
-
-/* No pseudo-element fill needed for this style logic, background-color handles it */
-.zen-circle::after {
-    display: none;
-}
-
-.status-text {
-    font-family: 'Quicksand', -apple-system, sans-serif !important;
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.2rem;
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
     pointer-events: none;
-    text-transform: uppercase;
-    z-index: 2;
-    /* Ensure on top of blur */
 }
 
-/* playing class handles color change */
-.zen-circle.playing {
-    animation: none;
-    /* Move animation to pseudo */
+body::before {
+    z-index: 0;
+    opacity: 0.22;
+    background-image:
+        radial-gradient(rgba(70, 62, 43, 0.18) 0.54px, transparent 0.82px),
+        radial-gradient(rgba(255, 255, 255, 0.62) 0.64px, transparent 0.92px);
+    background-position: 0 0, 9px 12px;
+    background-size: 18px 18px, 25px 25px;
+    mix-blend-mode: multiply;
 }
 
-.zen-circle.playing::before {
-    background: radial-gradient(circle at 40% 40%,
-            var(--color-sand) 0%,
-            var(--color-brown) 50%,
-            var(--color-brown-deep) 100%);
-    animation: gentlePulse 4s infinite ease-in-out;
+body::after {
+    z-index: 0;
+    opacity: 0.34;
+    background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.34), transparent 28%, transparent 74%, rgba(221, 205, 179, 0.36)),
+        radial-gradient(ellipse at 50% 106%, rgba(74, 72, 54, 0.15), transparent 48%);
 }
 
-.zen-circle.playing .status-text {
-    color: white;
-    animation: none;
+button,
+input {
+    font: inherit;
 }
 
-/* Organic breathing rhythm for center button */
-@keyframes gentlePulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 8px 32px rgba(139, 105, 20, 0.3);
-        filter: blur(2px);
-    }
-
-    50% {
-        transform: scale(1.06);
-        box-shadow: 0 12px 48px rgba(139, 105, 20, 0.45);
-        filter: blur(4px);
-    }
-
-    100% {
-        transform: scale(1);
-        box-shadow: 0 8px 32px rgba(139, 105, 20, 0.3);
-        filter: blur(2px);
-    }
+button {
+    border: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Hint Text */
-.hint-text {
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    font-weight: 400;
-    letter-spacing: 0.08rem;
-    opacity: 0;
-    transition: opacity 0.5s ease;
+.zen-field {
+    position: relative;
+    z-index: 1;
+    width: 100vw;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    isolation: isolate;
 }
 
-.hint-text.visible {
-    opacity: 0.7;
-}
-
-/* Volume Indicator - Arc progress */
-.volume-indicator {
+.wave-field {
     position: absolute;
-    bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    z-index: -1;
+    inset: 19vh -18vw auto;
+    height: min(30vh, 260px);
+    opacity: 0.88;
+    pointer-events: none;
+    transform: translateY(-1vh);
 }
 
-.volume-indicator.visible {
-    opacity: 1;
+.wave-field::before {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 12%;
+    height: 1px;
+    opacity: 0.18;
+    background:
+        linear-gradient(90deg, transparent, rgba(108, 101, 77, 0.34), transparent);
+}
+
+.cloud-layer {
+    position: absolute;
+    width: clamp(210px, 24vw, 360px);
+    height: clamp(58px, 7vw, 92px);
+    border-radius: 999px;
+    background:
+        radial-gradient(ellipse at 50% 82%, rgba(119, 111, 83, 0.11), transparent 58%),
+        linear-gradient(180deg, rgba(255, 253, 247, 0.72), rgba(238, 231, 216, 0.42));
+    filter: blur(0.4px);
+    box-shadow:
+        0 14px 24px rgba(105, 94, 68, 0.08),
+        inset 0 1px 7px rgba(255, 255, 255, 0.56),
+        inset 0 -10px 18px rgba(141, 126, 92, 0.08);
+    will-change: transform, opacity;
+}
+
+.cloud-layer::before,
+.cloud-layer::after,
+.cloud-puff {
+    content: "";
+    position: absolute;
+    display: block;
+    border-radius: 999px;
+    background:
+        radial-gradient(ellipse at 42% 30%, rgba(255, 255, 255, 0.9), rgba(249, 245, 235, 0.72) 52%, rgba(232, 224, 207, 0.34) 100%);
+    box-shadow:
+        inset 0 1px 5px rgba(255, 255, 255, 0.58),
+        0 8px 18px rgba(117, 105, 78, 0.07);
+}
+
+.cloud-layer::before {
+    left: 8%;
+    bottom: 22%;
+    width: 34%;
+    height: 64%;
+}
+
+.cloud-layer::after {
+    right: 9%;
+    bottom: 20%;
+    width: 32%;
+    height: 58%;
+}
+
+.cloud-puff-a {
+    left: 26%;
+    bottom: 28%;
+    width: 38%;
+    height: 82%;
+}
+
+.cloud-puff-b {
+    left: 49%;
+    bottom: 24%;
+    width: 28%;
+    height: 66%;
+}
+
+.cloud-puff-c {
+    left: 2%;
+    bottom: 12%;
+    width: 96%;
+    height: 42%;
+    opacity: 0.78;
+}
+
+.cloud-layer-a {
+    top: 30%;
+    left: 7%;
+    opacity: 0.82;
+    transform: translateX(-24vw) scale(0.78);
+    animation: cloudDriftA 42s linear infinite;
+}
+
+.cloud-layer-b {
+    top: 40%;
+    left: 48%;
+    opacity: 0.72;
+    transform: translateX(-12vw) scale(0.6);
+    filter: blur(0.9px);
+    animation: cloudDriftB 54s linear infinite;
+}
+
+.cloud-layer-c {
+    top: 25%;
+    left: 72%;
+    opacity: 0.64;
+    transform: translateX(22vw) scale(0.52);
+    filter: blur(1.1px);
+    animation: cloudDriftC 62s linear infinite;
+}
+
+.player-stack {
+    width: min(90vw, 560px);
+    display: grid;
+    justify-items: center;
+    gap: clamp(50px, 8vh, 82px);
+    transform: translateY(clamp(8px, 4vh, 38px));
+}
+
+.zen-dial {
+    --dial-size: clamp(248px, 34vw, 360px);
+    position: relative;
+    width: var(--dial-size);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--moss-deep);
+    background:
+        linear-gradient(145deg, #f2e7d6 0%, #e6d7be 56%, #d7c3a4 100%);
+    box-shadow:
+        0 32px 54px rgba(69, 55, 33, 0.18),
+        0 9px 18px rgba(69, 55, 33, 0.1),
+        inset 0 1px 2px rgba(255, 250, 238, 0.42),
+        inset 0 -20px 34px rgba(92, 73, 46, 0.13);
+    transition: transform 220ms ease, box-shadow 260ms ease, filter 260ms ease;
+}
+
+.zen-dial::before {
+    content: "";
+    position: absolute;
+    inset: 9%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 52%, #eadcc4 0 58%, #dcc9aa 76%, #f0e4d0 100%);
+    box-shadow:
+        inset 0 12px 20px rgba(101, 82, 52, 0.13),
+        inset 0 -2px 5px rgba(255, 250, 238, 0.34),
+        0 1px 0 rgba(255, 250, 238, 0.32);
+}
+
+.zen-dial::after {
+    content: "";
+    position: absolute;
+    inset: 24%;
+    border-radius: 50%;
+    border: 1px solid rgba(96, 78, 50, 0.1);
+    background:
+        linear-gradient(145deg, #f1e4cf 0%, #e5d3b6 56%, #d9c3a4 100%);
+    box-shadow:
+        0 14px 24px rgba(71, 55, 31, 0.2),
+        0 -1px 0 rgba(255, 250, 238, 0.38),
+        inset 0 1px 3px rgba(255, 250, 238, 0.36),
+        inset 0 -12px 18px rgba(83, 67, 43, 0.14);
+}
+
+.zen-dial:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.02);
+}
+
+.zen-dial:active {
+    transform: translateY(2px) scale(0.986);
+    box-shadow:
+        0 20px 34px rgba(69, 55, 33, 0.14),
+        0 6px 12px rgba(69, 55, 33, 0.08),
+        inset 0 8px 15px rgba(95, 76, 48, 0.16),
+        inset 0 -8px 16px rgba(255, 250, 238, 0.18);
+}
+
+.zen-dial:focus-visible,
+.volume-slider:focus-visible {
+    outline: 3px solid rgba(92, 103, 72, 0.32);
+    outline-offset: 8px;
+}
+
+.zen-dial.playing {
+    animation: buttonRest 5.2s ease-in-out infinite;
+}
+
+.dial-face {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 42%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+}
+
+.sound-glyph {
+    width: clamp(56px, 7.2vw, 78px);
+    height: auto;
+    overflow: visible;
+}
+
+.glyph-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 5.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.76;
+    transform-origin: center;
+}
+
+.zen-dial.playing .glyph-line-a {
+    animation: glyphCalmA 1.9s ease-in-out infinite;
+}
+
+.zen-dial.playing .glyph-line-b {
+    animation: glyphCalmB 1.9s ease-in-out infinite;
+}
+
+.volume-console {
+    width: min(100%, 470px);
+    min-height: 54px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: clamp(16px, 4vw, 24px);
+    padding: 0 clamp(20px, 5vw, 30px);
+    border: 1px solid rgba(99, 80, 51, 0.08);
+    border-radius: 999px;
+    background:
+        linear-gradient(145deg, rgba(239, 226, 204, 0.72), rgba(218, 200, 169, 0.48));
+    box-shadow:
+        0 15px 25px rgba(70, 55, 32, 0.1),
+        inset 0 2px 5px rgba(102, 82, 52, 0.1),
+        inset 0 -1px 2px rgba(255, 250, 238, 0.28);
+}
+
+.volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 30px;
+    color: var(--moss);
+    background: transparent;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-runnable-track {
+    height: 7px;
+    border-radius: 99px;
+    background:
+        linear-gradient(90deg, rgba(83, 96, 68, 0.72) 0 var(--volume-percent), rgba(128, 108, 75, 0.16) var(--volume-percent) 100%);
+    box-shadow:
+        inset 0 2px 4px rgba(73, 59, 36, 0.2),
+        0 1px 0 rgba(255, 250, 238, 0.36);
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -7.5px;
+    border: 1px solid rgba(100, 81, 51, 0.1);
+    border-radius: 50%;
+    background:
+        linear-gradient(145deg, #f0e4cf 0%, #ddc9a9 64%, #cdb38f 100%);
+    box-shadow:
+        0 4px 9px rgba(69, 55, 33, 0.2),
+        inset 0 1px 3px rgba(255, 250, 238, 0.42),
+        inset 0 -5px 8px rgba(87, 69, 43, 0.1);
+}
+
+.volume-slider::-moz-range-track {
+    height: 7px;
+    border-radius: 99px;
+    background:
+        linear-gradient(90deg, rgba(83, 96, 68, 0.72) 0 var(--volume-percent), rgba(128, 108, 75, 0.16) var(--volume-percent) 100%);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 1px solid rgba(100, 81, 51, 0.1);
+    border-radius: 50%;
+    background:
+        linear-gradient(145deg, #f0e4cf 0%, #ddc9a9 64%, #cdb38f 100%);
+    box-shadow:
+        0 4px 9px rgba(69, 55, 33, 0.2),
+        inset 0 1px 3px rgba(255, 250, 238, 0.42),
+        inset 0 -5px 8px rgba(87, 69, 43, 0.1);
 }
 
 .volume-value {
-    font-family: 'Quicksand', sans-serif;
-    font-size: 1.5rem;
+    color: rgba(63, 56, 40, 0.42);
+    font-size: 16px;
     font-weight: 600;
-    color: var(--color-brown);
-    letter-spacing: 0.05rem;
+    line-height: 1;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
-.volume-label {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1rem;
-}
-
-/* Concentric Ring Pulse Animation */
-@keyframes ringPulse1 {
-
-    0%,
-    100% {
-        opacity: 0.6;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.3;
-        transform: scale(1.02);
-    }
-}
-
-@keyframes ringPulse2 {
-
-    0%,
-    100% {
-        opacity: 0.5;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.25;
-        transform: scale(1.015);
-    }
-}
-
-@keyframes ringPulse3 {
-
-    0%,
-    100% {
-        opacity: 0.4;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.2;
-        transform: scale(1.01);
-    }
-}
-
-.volume-ring.active {
-    will-change: transform;
-}
-
-/* Performance optimization */
-.zen-circle::before {
-    will-change: transform, box-shadow, filter;
-}
-
-.volume-ring::before,
-.volume-ring::after {
-    will-change: transform, opacity, filter;
-}
-
-/* Haptic feedback pulse - visual only since we can't do real haptics in browser */
-@keyframes hapticPulse {
+@keyframes cloudDriftA {
     0% {
-        transform: scale(1);
+        transform: translateX(-30vw) translateY(0) scale(0.78);
+        opacity: 0;
     }
 
-    50% {
-        transform: scale(0.98);
+    12%,
+    82% {
+        opacity: 0.82;
     }
 
     100% {
-        transform: scale(1);
+        transform: translateX(118vw) translateY(-8px) scale(0.78);
+        opacity: 0;
     }
 }
 
-.zen-circle.haptic {
-    animation: hapticPulse 0.1s ease;
+@keyframes cloudDriftB {
+    0% {
+        transform: translateX(72vw) translateY(2px) scale(0.6);
+        opacity: 0;
+    }
+
+    14%,
+    84% {
+        opacity: 0.72;
+    }
+
+    100% {
+        transform: translateX(-86vw) translateY(-5px) scale(0.6);
+        opacity: 0;
+    }
+}
+
+@keyframes cloudDriftC {
+    0% {
+        transform: translateX(48vw) translateY(0) scale(0.52);
+        opacity: 0;
+    }
+
+    10%,
+    86% {
+        opacity: 0.64;
+    }
+
+    100% {
+        transform: translateX(-104vw) translateY(6px) scale(0.52);
+        opacity: 0;
+    }
+}
+
+@keyframes glyphCalmA {
+    0%,
+    100% {
+        transform: translateY(0) scaleY(1);
+    }
+
+    50% {
+        transform: translateY(1.5px) scaleY(0.9);
+    }
+}
+
+@keyframes glyphCalmB {
+    0%,
+    100% {
+        transform: translateY(0) scaleY(1);
+    }
+
+    50% {
+        transform: translateY(-1.5px) scaleY(1.08);
+    }
+}
+
+@keyframes buttonRest {
+    0%,
+    100% {
+        box-shadow:
+            0 32px 54px rgba(69, 55, 33, 0.18),
+            0 9px 18px rgba(69, 55, 33, 0.1),
+            inset 0 1px 2px rgba(255, 250, 238, 0.42),
+            inset 0 -20px 34px rgba(92, 73, 46, 0.13);
+    }
+
+    50% {
+        box-shadow:
+            0 36px 60px rgba(69, 55, 33, 0.2),
+            0 11px 20px rgba(69, 55, 33, 0.11),
+            inset 0 1px 2px rgba(255, 250, 238, 0.48),
+            inset 0 -18px 31px rgba(92, 73, 46, 0.11);
+    }
+}
+
+@media (max-width: 720px) {
+    .wave-field {
+        inset: 17vh -30vw auto;
+        height: 28vh;
+        opacity: 0.82;
+    }
+
+    .cloud-layer-a {
+        transform: translateX(-38vw) scale(0.6);
+    }
+
+    .cloud-layer-b {
+        transform: translateX(62vw) scale(0.48);
+    }
+
+    .cloud-layer-c {
+        transform: translateX(54vw) scale(0.42);
+    }
+
+    .player-stack {
+        width: min(90vw, 430px);
+        gap: clamp(46px, 8vh, 62px);
+        transform: translateY(18px);
+    }
+
+    .zen-dial {
+        --dial-size: min(76vw, 310px);
+    }
+
+    .volume-console {
+        width: min(88vw, 380px);
+        min-height: 54px;
+        grid-template-columns: minmax(0, 1fr) 34px;
+        gap: 16px;
+        padding: 0 20px;
+    }
+
+    .volume-value {
+        font-size: 15px;
+    }
+}
+
+@media (max-height: 650px) {
+    .player-stack {
+        gap: 38px;
+        transform: translateY(12px);
+    }
+
+    .zen-dial {
+        --dial-size: min(58vh, 300px);
+    }
+
+    .volume-console {
+        min-height: 52px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
 }
