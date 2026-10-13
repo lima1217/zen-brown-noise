@@ -1,9 +1,11 @@
-const CACHE_NAME = 'zen-brown-noise-v2.1-control-system';
+const CACHE_NAME = 'zen-brown-noise-v3.6-calm';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/style.css?v=20260612-control-system',
-    '/app.js?v=20260612-control-system',
+    '/style.css?v=20261013-calm2',
+    '/i18n.js?v=20261013-calm2',
+    '/app.js?v=20261013-calm2',
+    '/icon.svg',
     '/favicon.png',
     '/apple-touch-icon.png',
     '/manifest.json'

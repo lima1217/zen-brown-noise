@@ -4,8 +4,8 @@
     "description": "A minimalist brown noise generator for ADHD focus and deep relaxation",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#F9F5EE",
-    "theme_color": "#F9F5EE",
+    "background_color": "#EEEBE5",
+    "theme_color": "#EEEBE5",
     "orientation": "portrait",
     "icons": [
         {

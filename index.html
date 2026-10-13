@@ -1,64 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zen Brown Noise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>禅 · 布朗噪音</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260612-control-system">
-    <meta name="description" content="A minimalist brown noise generator for ADHD focus and deep relaxation.">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css?v=20261013-calm2">
+    <meta name="description" content="极简布朗噪音生成器，帮助专注与深度放松。">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Brown Noise">
-    <meta name="theme-color" content="#F3EBDD">
+    <meta name="theme-color" content="#EEEBE5" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#171615" media="(prefers-color-scheme: dark)">
+    <script>
+        // Apply saved theme before first paint to avoid a flash.
+        (function () {
+            var t = localStorage.getItem('zenTheme');
+            if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+        })();
+    </script>
 </head>
 
 <body>
-    <main class="zen-field" aria-label="Zen brown noise player">
-        <div class="wave-field" aria-hidden="true">
-            <span class="cloud-layer cloud-layer-a">
-                <span class="cloud-puff cloud-puff-a"></span>
-                <span class="cloud-puff cloud-puff-b"></span>
-                <span class="cloud-puff cloud-puff-c"></span>
-            </span>
-            <span class="cloud-layer cloud-layer-b">
-                <span class="cloud-puff cloud-puff-a"></span>
-                <span class="cloud-puff cloud-puff-b"></span>
-                <span class="cloud-puff cloud-puff-c"></span>
-            </span>
-            <span class="cloud-layer cloud-layer-c">
-                <span class="cloud-puff cloud-puff-a"></span>
-                <span class="cloud-puff cloud-puff-b"></span>
-                <span class="cloud-puff cloud-puff-c"></span>
-            </span>
-        </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="brush" x="-15%" y="-15%" width="130%" height="130%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="wobble" />
+                <feDisplacementMap in="SourceGraphic" in2="wobble" scale="7" xChannelSelector="R" yChannelSelector="G" result="shaped" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="1" seed="9" result="fibre" />
+                <feDisplacementMap in="shaped" in2="fibre" scale="2.2" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <filter id="brushSm" x="-20%" y="-20%" width="140%" height="140%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.18" numOctaves="2" seed="5" result="wobble" />
+                <feDisplacementMap in="SourceGraphic" in2="wobble" scale="1.4" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <linearGradient id="inkGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" />
+                <stop offset="55%" />
+                <stop offset="100%" />
+            </linearGradient>
+        </defs>
+    </svg>
 
-        <section class="player-stack" aria-label="Playback controls">
-            <button class="zen-dial" id="playBtn" type="button" aria-label="Play brown noise" aria-pressed="false">
-                <span class="dial-face" aria-hidden="true">
-                    <svg class="sound-glyph" viewBox="0 0 96 64" aria-hidden="true">
-                        <path class="glyph-line glyph-line-a" d="M17 36 C 28 26, 38 26, 49 36 S 70 46, 81 36" />
-                        <path class="glyph-line glyph-line-b" d="M17 27 C 28 17, 38 17, 49 27 S 70 37, 81 27" />
-                    </svg>
+    <div class="atmosphere" aria-hidden="true"></div>
+
+    <header class="topbar">
+        <a class="logo" href="./" data-i18n-aria="title" aria-label="禅 · 布朗噪音">
+            <svg viewBox="0 0 40 40" aria-hidden="true">
+                <g class="logo-enso" filter="url(#brushSm)">
+                    <path pathLength="100" style="--w:1.9;--len:100" d="M 31.26 13.5 A 13 13 0 1 0 32.8 22.26" />
+                    <path pathLength="100" style="--w:2.9;--len:84" d="M 31.26 13.5 A 13 13 0 1 0 32.8 22.26" />
+                    <path pathLength="100" style="--w:3.9;--len:62" d="M 31.26 13.5 A 13 13 0 1 0 32.8 22.26" />
+                    <path pathLength="100" style="--w:4.9;--len:36" d="M 31.26 13.5 A 13 13 0 1 0 32.8 22.26" />
+                </g>
+                <circle class="logo-dot" cx="20" cy="20" r="2.7" />
+            </svg>
+        </a>
+        <div class="topbar-actions">
+        <div class="lang-picker" id="langPicker">
+            <button class="icon-btn lang-btn" id="langBtn" type="button" aria-haspopup="menu" aria-expanded="false"
+                aria-controls="langMenu" data-i18n-aria="language" aria-label="选择语言">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M3 12h18M12 3c2.6 2.5 3.9 5.5 3.9 9s-1.3 6.5-3.9 9c-2.6-2.5-3.9-5.5-3.9-9S9.4 5.5 12 3z" />
+                </svg>
+                <span class="lang-code" id="langCode">中</span>
+            </button>
+            <div class="lang-menu" id="langMenu" role="menu" aria-labelledby="langBtn" hidden>
+                <button type="button" role="menuitemradio" data-lang="zh" lang="zh-CN" aria-checked="true">中文</button>
+                <button type="button" role="menuitemradio" data-lang="en" lang="en" aria-checked="false">English</button>
+                <button type="button" role="menuitemradio" data-lang="ja" lang="ja" aria-checked="false">日本語</button>
+                <button type="button" role="menuitemradio" data-lang="ko" lang="ko" aria-checked="false">한국어</button>
+            </div>
+        </div>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="切换到深色模式">
+            <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.2" />
+                <path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" />
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 14.6A8.3 8.3 0 0 1 9.4 4a8.3 8.3 0 1 0 10.6 10.6z" />
+            </svg>
+        </button>
+        </div>
+    </header>
+
+    <main class="stage">
+        <div class="orb-wrap" id="orbWrap">
+            <span class="ripple ripple-1" aria-hidden="true"></span>
+            <span class="ripple ripple-2" aria-hidden="true"></span>
+            <span class="ripple ripple-3" aria-hidden="true"></span>
+
+            <button class="orb" id="playBtn" type="button" aria-label="播放布朗噪音" aria-pressed="false">
+                <svg class="timer-ring" viewBox="0 0 200 200" aria-hidden="true">
+                    <circle class="timer-track" cx="100" cy="100" r="96" />
+                    <circle class="timer-progress" id="timerProgress" cx="100" cy="100" r="96" pathLength="100" />
+                </svg>
+
+                <span class="breath" aria-hidden="true">
+                    <span class="breath-disc"></span>
+                    <span class="breath-word" id="breathWord">
+                        <span class="breath-layer"><span class="breath-phase"></span><span class="breath-count"></span></span>
+                        <span class="breath-layer"><span class="breath-phase"></span><span class="breath-count"></span></span>
+                    </span>
+                </span>
+
+                <svg class="enso" viewBox="0 0 200 200" aria-hidden="true">
+                    <g filter="url(#brush)">
+                        <path pathLength="100" class="enso-stroke" style="--w:5;--len:100" d="M 150.2 71 A 58 58 0 1 0 157.1 110.1" />
+                        <path pathLength="100" class="enso-stroke" style="--w:9;--len:86" d="M 150.2 71 A 58 58 0 1 0 157.1 110.1" />
+                        <path pathLength="100" class="enso-stroke" style="--w:13;--len:68" d="M 150.2 71 A 58 58 0 1 0 157.1 110.1" />
+                        <path pathLength="100" class="enso-stroke" style="--w:17;--len:46" d="M 150.2 71 A 58 58 0 1 0 157.1 110.1" />
+                        <path pathLength="100" class="enso-stroke" style="--w:21;--len:22" d="M 150.2 71 A 58 58 0 1 0 157.1 110.1" />
+                    </g>
+                </svg>
+
+                <span class="orb-icon" aria-hidden="true">
+                    <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24"><path d="M7.5 5.5h3v13h-3zM13.5 5.5h3v13h-3z" /></svg>
                 </span>
             </button>
+        </div>
 
-            <div class="volume-console" aria-label="Volume control">
-                <input class="volume-slider" id="volumeSlider" type="range" min="0" max="100" value="50" aria-label="Volume">
-                <span class="volume-value" id="volumeValue" aria-live="polite">50</span>
-            </div>
-        </section>
+        <p class="status" id="status" aria-live="polite">
+            <span class="status-main" id="statusMain">轻触开始</span>
+            <span class="status-sub" id="statusSub">深沉的布朗噪音，助你专注与休息</span>
+        </p>
     </main>
 
-    <script src="app.js?v=20260612-control-system"></script>
+    <section class="controls" data-i18n-aria="soundSettings" aria-label="声音设置">
+        <div class="control-row">
+            <label class="control-label" for="volumeSlider" data-i18n="volume">音量</label>
+            <input class="slider" id="volumeSlider" type="range" min="0" max="100" value="50" style="--fill:50%">
+            <output class="control-value" id="volumeValue" for="volumeSlider">50</output>
+        </div>
+
+        <div class="control-row">
+            <label class="control-label" for="toneSlider" data-i18n="tone">音色</label>
+            <input class="slider" id="toneSlider" type="range" min="0" max="100" value="40" style="--fill:40%"
+                aria-valuetext="温暖">
+            <output class="control-value" id="toneValue" for="toneSlider">温暖</output>
+        </div>
+
+        <div class="control-row">
+            <label class="control-label" for="timerSlider" data-i18n="timer">定时</label>
+            <input class="slider" id="timerSlider" type="range" min="0" max="13" step="1" value="13" style="--fill:100%"
+                aria-valuetext="∞">
+            <output class="control-value timer-value" id="timerValue" for="timerSlider">∞</output>
+        </div>
+    </section>
+
+    <footer class="hints" aria-hidden="true">
+        <span><kbd>Space</kbd> <span data-i18n="hintPlay">播放</span></span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> <span data-i18n="hintVolume">音量</span></span>
+        <span><kbd>←</kbd><kbd>→</kbd> <span data-i18n="hintTone">音色</span></span>
+        <span><kbd>T</kbd> <span data-i18n="hintTimer">定时</span></span>
+    </footer>
+
+    <script src="i18n.js?v=20261013-calm2"></script>
+    <script src="app.js?v=20261013-calm2"></script>
 </body>
 
 </html>
