@@ -2,7 +2,7 @@ const $ = (id) => document.getElementById(id);
 
 const playBtn = $('playBtn');
 const volumeSlider = $('volumeSlider');
-const volumeValue = $('volumeValue');
+const volumeIcon = $('volumeIcon');
 const toneSlider = $('toneSlider');
 const toneValue = $('toneValue');
 const timerSlider = $('timerSlider');
@@ -11,8 +11,7 @@ const timerValue = $('timerValue');
 // Timer slider stops in minutes; the far right (0) means no limit.
 const TIMER_STEPS = [5, 10, 15, 25, 30, 45, 60, 75, 90, 120, 150, 180, 240, 0];
 const timerProgress = $('timerProgress');
-const statusMain = $('statusMain');
-const statusSub = $('statusSub');
+const clock = $('clock');
 const themeBtn = $('themeBtn');
 const orbWrap = $('orbWrap');
 const breathWord = $('breathWord');
@@ -264,8 +263,6 @@ function tick() {
         state.timerRemaining = Math.max(0, state.timerRemaining - delta);
         if (state.timerRemaining <= 0) {
             pause(TIMER_FADE_OUT);
-            statusMain.textContent = t('complete');
-            statusSub.textContent = t('completeSub');
             return;
         }
     }
@@ -281,6 +278,8 @@ function formatTime(totalSeconds) {
     return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
 }
 
+// No captions: one clock under the orb, and its brightness carries the state —
+// bright while playing, quiet when paused or when a timer is set but not started.
 function renderStatus() {
     const hasTimer = state.timerMinutes > 0;
     document.body.classList.toggle('has-timer', hasTimer);
@@ -289,26 +288,24 @@ function renderStatus() {
     const fraction = hasTimer && total > 0 ? state.timerRemaining / total : 1;
     timerProgress.style.strokeDashoffset = String(100 * (1 - fraction));
 
+    let time = '';
+    let mode = 'hidden';
     if (state.playing) {
-        if (hasTimer) {
-            statusMain.textContent = formatTime(state.timerRemaining);
-            statusSub.textContent = t('remainingSub');
-        } else {
-            statusMain.textContent = formatTime(state.elapsed);
-            statusSub.textContent = t('elapsedSub');
-        }
+        time = formatTime(hasTimer ? state.timerRemaining : state.elapsed);
+        mode = 'live';
         updateMediaTitle();
     } else if (state.elapsed > 0) {
-        statusMain.textContent = t('paused');
-        statusSub.textContent = hasTimer
-            ? t('pausedTimerSub', { time: formatTime(state.timerRemaining) })
-            : t('pausedSub');
-    } else {
-        statusMain.textContent = t('idle');
-        statusSub.textContent = hasTimer
-            ? t('idleTimerSub', { time: formatTime(total) })
-            : t('idleSub');
+        time = formatTime(hasTimer ? state.timerRemaining : state.elapsed);
+        mode = 'quiet';
+    } else if (hasTimer) {
+        time = formatTime(total);
+        mode = 'quiet';
     }
+
+    // Keep the last digits while fading out, so the clock never empties before it disappears.
+    if (time && clock.textContent !== time) clock.textContent = time;
+    clock.classList.toggle('is-hidden', mode === 'hidden');
+    clock.classList.toggle('is-quiet', mode === 'quiet');
 }
 
 // Breathing guide + audio-reactive pulse, driven from one animation frame loop.
@@ -414,11 +411,13 @@ function toneLabel(value) {
     return 'toneBright';
 }
 
+// The speaker icon stands in for a label and a number: its waves show the level at a glance.
 function renderVolume() {
     const pct = Math.round(state.volume * 100);
     volumeSlider.value = String(pct);
     volumeSlider.style.setProperty('--fill', `${pct}%`);
-    volumeValue.textContent = pct === 0 ? t('mute') : String(pct);
+    volumeSlider.setAttribute('aria-valuetext', pct === 0 ? t('mute') : String(pct));
+    volumeIcon.dataset.level = String(pct === 0 ? 0 : Math.min(3, Math.ceil(pct / 34)));
 }
 
 function renderTone() {

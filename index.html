@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261013-calm2">
+    <link rel="stylesheet" href="style.css?v=20261023-quiet">
     <meta name="description" content="极简棕噪音生成器，帮助专注与深度放松。">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
@@ -81,7 +81,7 @@
                 <button type="button" role="menuitemradio" data-lang="ko" lang="ko" aria-checked="false">한국어</button>
             </div>
         </div>
-        <button class="icon-btn" id="themeBtn" type="button" aria-label="切换到深色模式">
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="切换到深色模式" aria-keyshortcuts="D">
             <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="12" r="4.2" />
                 <path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" />
@@ -99,7 +99,7 @@
             <span class="ripple ripple-2" aria-hidden="true"></span>
             <span class="ripple ripple-3" aria-hidden="true"></span>
 
-            <button class="orb" id="playBtn" type="button" aria-label="播放棕噪音" aria-pressed="false">
+            <button class="orb" id="playBtn" type="button" aria-label="播放棕噪音" aria-pressed="false" aria-keyshortcuts="Space K">
                 <svg class="timer-ring" viewBox="0 0 200 200" aria-hidden="true">
                     <circle class="timer-track" cx="100" cy="100" r="96" />
                     <circle class="timer-progress" id="timerProgress" cx="100" cy="100" r="96" pathLength="100" />
@@ -130,43 +130,39 @@
             </button>
         </div>
 
-        <p class="status" id="status" aria-live="polite">
-            <span class="status-main" id="statusMain">轻触开始</span>
-            <span class="status-sub" id="statusSub">深沉的棕噪音，助你专注与休息</span>
-        </p>
+        <!-- One clock, no captions: its brightness tells playing / paused / ready. -->
+        <p class="clock is-hidden" id="clock" aria-hidden="true"></p>
     </main>
 
+    <!-- The values explain themselves (温暖, 25分, ∞); volume is shown by the speaker icon. -->
     <section class="controls" data-i18n-aria="soundSettings" aria-label="声音设置">
         <div class="control-row">
-            <label class="control-label" for="volumeSlider" data-i18n="volume">音量</label>
-            <input class="slider" id="volumeSlider" type="range" min="0" max="100" value="50" style="--fill:50%">
-            <output class="control-value" id="volumeValue" for="volumeSlider">50</output>
+            <input class="slider" id="volumeSlider" type="range" min="0" max="100" value="50" style="--fill:50%"
+                data-i18n-aria="volume" aria-label="音量" aria-keyshortcuts="ArrowUp ArrowDown">
+            <svg class="control-value volume-icon" id="volumeIcon" data-level="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path class="speaker" d="M4 9.5h3.2L11.5 6v12l-4.3-3.5H4z" />
+                <path class="wave wave-1" d="M14.6 9.6a3.4 3.4 0 0 1 0 4.8" />
+                <path class="wave wave-2" d="M17 7.6a6.2 6.2 0 0 1 0 8.8" />
+                <path class="wave wave-3" d="M19.4 5.6a9 9 0 0 1 0 12.8" />
+                <path class="mute" d="M15 9.5l5 5M20 9.5l-5 5" />
+            </svg>
         </div>
 
         <div class="control-row">
-            <label class="control-label" for="toneSlider" data-i18n="tone">音色</label>
             <input class="slider" id="toneSlider" type="range" min="0" max="100" value="40" style="--fill:40%"
-                aria-valuetext="温暖">
-            <output class="control-value" id="toneValue" for="toneSlider">温暖</output>
+                data-i18n-aria="tone" aria-label="音色" aria-valuetext="温暖" aria-keyshortcuts="ArrowLeft ArrowRight">
+            <output class="control-value" id="toneValue" for="toneSlider" aria-hidden="true">温暖</output>
         </div>
 
         <div class="control-row">
-            <label class="control-label" for="timerSlider" data-i18n="timer">定时</label>
             <input class="slider" id="timerSlider" type="range" min="0" max="13" step="1" value="13" style="--fill:100%"
-                aria-valuetext="∞">
-            <output class="control-value timer-value" id="timerValue" for="timerSlider">∞</output>
+                data-i18n-aria="timer" aria-label="定时" aria-valuetext="∞" aria-keyshortcuts="T">
+            <output class="control-value timer-value" id="timerValue" for="timerSlider" aria-hidden="true">∞</output>
         </div>
     </section>
 
-    <footer class="hints" aria-hidden="true">
-        <span><kbd>Space</kbd> <span data-i18n="hintPlay">播放</span></span>
-        <span><kbd>↑</kbd><kbd>↓</kbd> <span data-i18n="hintVolume">音量</span></span>
-        <span><kbd>←</kbd><kbd>→</kbd> <span data-i18n="hintTone">音色</span></span>
-        <span><kbd>T</kbd> <span data-i18n="hintTimer">定时</span></span>
-    </footer>
-
-    <script src="i18n.js?v=20261013-calm2"></script>
-    <script src="app.js?v=20261013-calm2"></script>
+    <script src="i18n.js?v=20261023-quiet"></script>
+    <script src="app.js?v=20261023-quiet"></script>
 </body>
 
 </html>

@@ -14,12 +14,13 @@ A quiet, minimalist brown noise web app for focus, rest and sleep — with a bui
 |---|---|
 | **圆相播放器** | 中央的笔触圆相就是播放键。点击后圆相重新"书写"一遍，播放中缓慢旋转。 |
 | **4-7-8 呼吸引导** | 圆心的光吸气 4 秒变大、屏气 7 秒保持、呼气 8 秒缩小。中间显示"吸气 / 屏气 / 呼气"和倒计时，换阶段时文字交叉淡化；每次呼气外圈扩散一圈涟漪。 |
-| **音量与音色** | 音量采用符合听感的曲线；音色从"低沉"到"明亮"，由低通滤波实时调节。 |
+| **音量与音色** | 音量采用符合听感的曲线，右侧喇叭图标的声波随音量增减；音色从"低沉"到"明亮"，由低通滤波实时调节。 |
 | **定时** | 滑杆可选 5 分钟到 4 小时（含 25 分钟番茄钟），拖到最右边为 ∞ 不限时。剩余时间以圆环显示，结束时 8 秒渐弱停止。 |
 | **多语言** | 默认中文，右上角 🌐 可切换 English、日本語、한국어。 |
 | **浅色 / 深色** | 素雅的暖灰纸色与炭灰夜间主题；默认跟随系统，也可手动切换。 |
 | **顺滑的声音** | 开始、暂停都有淡入淡出，无"啪"声；立体声无缝循环，没有周期性的咔哒声；暂停后挂起音频引擎，更省电。 |
 | **系统集成** | 锁屏 / 耳机媒体控制，可添加到主屏幕作为 PWA 使用，离线可用。 |
+| **安静的界面** | 没有说明文字和标签：圆相下只有一行时钟，播放时清晰、暂停或待开始时变淡；滑杆旁只有数值（温暖、25 分、∞）和喇叭图标。 |
 | **记住设置** | 音量、音色、定时、语言、主题都保存在本地，下次打开即恢复。 |
 
 ## ⌨️ 快捷键
@@ -33,7 +34,7 @@ A quiet, minimalist brown noise web app for focus, rest and sleep — with a bui
 | `D` | 切换浅色 / 深色 |
 | `Esc` | 关闭语言菜单 |
 
-焦点在某个滑杆上时，方向键只调节该滑杆。
+焦点在某个滑杆上时，方向键只调节该滑杆。界面上不显示快捷键提示，它们是播放器的常用按键，也通过 `aria-keyshortcuts` 告知读屏软件。
 
 ## 🌬️ 为什么是棕噪音和 4-7-8？
 
@@ -105,6 +106,7 @@ preview.png         README 预览图
 
 - **Tap the ensō** to play or pause. The noise is generated live with the Web Audio API, fades in and out smoothly, and loops seamlessly in stereo.
 - **4-7-8 breathing guide**: the light in the center grows for 4s (inhale), holds for 7s, and shrinks for 8s (exhale), with a live cue and countdown.
+- **A quiet interface**: no captions or labels. A single clock sits under the ensō, bright while playing and dimmed when paused; the sliders show only their values and a speaker icon whose waves follow the volume.
 - **Volume, tone and timer sliders**: tone runs from Deep to Bright. The timer goes from 5 min to 4 h, or slide all the way right for ∞; it fades out gently at the end.
 - **Interface**: Chinese by default, plus English, Japanese and Korean. Light and dark themes. Works offline as a PWA and supports lock-screen media controls.
 - **Shortcuts**: `Space` play/pause, `↑↓` volume, `←→` tone, `T` timer, `D` theme.
@@ -114,6 +116,12 @@ Run it locally with any static server (e.g. `python3 -m http.server`). No build 
 ---
 
 ## 📋 更新日志 · Changelog
+
+### v2.1.0 (2026-10-23)
+**更安静的界面 · Quieter interface**
+- 🤫 去掉次要说明文字：圆相下只留一行时钟，用亮度表示播放 / 暂停 / 待开始；不再显示"轻触开始""剩余时间 · 结束时渐弱"等说明
+- 🎛️ 去掉"音量 / 音色 / 定时"标签，数值本身就是说明；音量数字换成随音量变化的喇叭图标
+- ⌨️ 去掉底部快捷键提示栏（快捷键不变，并加入 `aria-keyshortcuts`）
 
 ### v2.0.0 (2026-10-13)
 **全新界面与交互 · Full redesign**
