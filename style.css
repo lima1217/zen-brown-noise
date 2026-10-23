@@ -30,7 +30,12 @@
 
     --level: 0;
     --orb-size: clamp(220px, 56vmin, 340px);
+    /* One motion language: a single easing curve and three durations for every state change.
+       (Theme and atmosphere fades keep their own slower pace on purpose.) */
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --quick: 200ms;
+    --standard: 450ms;
+    --slow: 900ms;
     --inhale: 0; /* 0 = fully exhaled, 1 = fully inhaled; driven from app.js */
     --serif: "Cormorant Garamond", Georgia, "Songti SC", "Noto Serif SC", "Source Han Serif SC", serif;
 }
@@ -205,7 +210,7 @@ body.is-playing .atmosphere {
     place-items: center;
     margin-left: -4px;
     border-radius: 50%;
-    transition: transform 400ms var(--ease);
+    transition: transform var(--standard) var(--ease);
 }
 
 .logo:hover {
@@ -230,7 +235,7 @@ body.is-playing .atmosphere {
     fill: var(--ink-c);
     transform-origin: 20px 20px;
     transform: scale(0.85);
-    transition: transform 600ms var(--ease);
+    transition: transform var(--slow) var(--ease);
 }
 
 body.is-playing .logo-dot {
@@ -245,7 +250,7 @@ body.is-playing .logo-dot {
     place-items: center;
     border-radius: 50%;
     color: var(--text-soft);
-    transition: background-color 200ms, color 200ms, transform 200ms var(--ease);
+    transition: background-color var(--quick) var(--ease), color var(--quick) var(--ease), transform var(--standard) var(--ease);
 }
 
 .icon-btn:hover {
@@ -254,7 +259,8 @@ body.is-playing .logo-dot {
 }
 
 .icon-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
+    transition-duration: 80ms;
 }
 
 .icon-btn svg {
@@ -266,7 +272,7 @@ body.is-playing .logo-dot {
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: opacity 300ms, transform 500ms var(--ease);
+    transition: opacity var(--quick) var(--ease), transform var(--standard) var(--ease);
 }
 
 .icon-moon { opacity: 0; transform: rotate(-60deg) scale(0.6); }
@@ -325,7 +331,7 @@ body.is-playing .logo-dot {
     background: var(--surface-strong);
     box-shadow: 0 18px 40px -12px rgba(40, 28, 10, 0.35);
     transform-origin: top right;
-    animation: menuIn 220ms var(--ease);
+    animation: menuIn var(--quick) var(--ease);
 }
 
 .lang-menu[hidden] {
@@ -343,7 +349,7 @@ body.is-playing .logo-dot {
     font-size: 14px;
     color: var(--text-soft);
     text-align: left;
-    transition: background-color 150ms, color 150ms;
+    transition: background-color var(--quick) var(--ease), color var(--quick) var(--ease);
 }
 
 .lang-menu button:hover,
@@ -389,6 +395,8 @@ body.is-playing .logo-dot {
     height: var(--orb-size);
     display: grid;
     place-items: center;
+    /* Audio-reactive pulse; --level is already smoothed per frame in app.js, so no transition here. */
+    transform: scale(calc(1 + var(--level) * 0.025));
 }
 
 .ripple {
@@ -398,6 +406,8 @@ body.is-playing .logo-dot {
     border: 1px solid var(--ripple);
     opacity: 0;
     pointer-events: none;
+    /* Used only when a pause releases a ripple mid-flight: it fades out where it was held. */
+    transition: opacity var(--slow) var(--ease);
 }
 
 /* One wave of ripples is released at the start of each exhale. */
@@ -430,8 +440,7 @@ body:not(.is-playing) .ripple {
         var(--shadow),
         inset 0 1px 1px rgba(255, 255, 255, 0.5),
         inset 0 -14px 30px rgba(120, 90, 50, 0.08);
-    transform: scale(calc(1 + var(--level) * 0.025));
-    transition: transform 160ms linear, box-shadow 400ms var(--ease);
+    transition: transform var(--standard) var(--ease), box-shadow var(--standard) var(--ease);
     touch-action: manipulation;
 }
 
@@ -441,9 +450,14 @@ body:not(.is-playing) .ripple {
 
 .orb:hover .orb-icon { opacity: 0.85; }
 
+/* The orb sinks the instant it is pressed and springs back with the shared ease. */
 .orb:active {
-    transform: scale(0.97);
-    transition-duration: 120ms;
+    transform: scale(0.965);
+    box-shadow:
+        0 10px 24px -16px rgba(40, 30, 15, 0.3),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5),
+        inset 0 -10px 24px rgba(120, 90, 50, 0.1);
+    transition-duration: 90ms;
 }
 
 .orb:focus-visible {
@@ -470,13 +484,13 @@ body:not(.is-playing) .ripple {
     background: radial-gradient(circle, var(--glow-core) 0%, var(--glow) 48%, transparent 74%);
     opacity: 0;
     transform: scale(0.36);
-    transition: opacity 1s var(--ease), transform 1s var(--ease);
+    transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease);
 }
 
 body.is-playing .breath-disc {
     opacity: calc(0.5 + var(--inhale) * 0.5);
     transform: scale(calc(0.36 + var(--inhale) * 0.64));
-    transition: opacity 1s var(--ease), border-color 800ms var(--ease), box-shadow 800ms var(--ease);
+    transition: opacity var(--slow) var(--ease), border-color var(--slow) var(--ease), box-shadow var(--slow) var(--ease);
 }
 
 .breath-word {
@@ -490,7 +504,7 @@ body.is-playing .breath-disc {
     white-space: nowrap;
     color: var(--breath-text);
     opacity: 0;
-    transition: opacity 600ms var(--ease);
+    transition: opacity var(--standard) var(--ease);
 }
 
 .breath-layer {
@@ -500,7 +514,7 @@ body.is-playing .breath-disc {
     gap: 2px;
     opacity: 0;
     transform: translateY(3px);
-    transition: opacity 900ms ease-in-out, transform 900ms var(--ease);
+    transition: opacity var(--slow) ease-in-out, transform var(--slow) var(--ease);
 }
 
 /* Old and new phase labels crossfade, so the center is never empty. */
@@ -524,7 +538,7 @@ body.is-playing .breath-word {
 .orb-wrap[data-breath="hold"] .breath-disc {
     border-color: var(--ink-a);
     box-shadow: 0 0 0 4px var(--accent-soft);
-    transition: border-color 800ms var(--ease), box-shadow 800ms var(--ease), opacity 1s var(--ease);
+    transition: border-color var(--slow) var(--ease), box-shadow var(--slow) var(--ease), opacity var(--slow) var(--ease);
 }
 
 @media (hover: hover) {
@@ -541,9 +555,11 @@ body.is-playing .breath-word {
     height: 84%;
     overflow: visible;
     opacity: 0.72;
-    transition: opacity 900ms var(--ease);
+    transition: opacity var(--slow) var(--ease);
 }
 
+/* While paused the ensō rests at the angle it reached (set inline by app.js), and the
+   next play starts this animation with a negative delay so it keeps turning from there. */
 body.is-playing .enso {
     opacity: 1;
     animation: ensoTurn 140s linear infinite;
@@ -561,6 +577,8 @@ body.is-playing .enso {
     stroke-dashoffset: 0;
 }
 
+/* Theme switch: the ink changes colour with the page instead of flipping in one frame. */
+#inkGradient stop { transition: stop-color 600ms var(--ease); }
 #inkGradient stop:nth-child(1) { stop-color: var(--ink-a); }
 #inkGradient stop:nth-child(2) { stop-color: var(--ink-b); }
 #inkGradient stop:nth-child(3) { stop-color: var(--ink-c); }
@@ -574,7 +592,10 @@ body.is-playing .enso {
     to { stroke-dashoffset: 0; }
 }
 
+/* Explicit `from`: otherwise the paused angle (inline transform) becomes the start keyframe
+   and the resume delay is counted on top of it. */
 @keyframes ensoTurn {
+    from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
@@ -587,7 +608,7 @@ body.is-playing .enso {
     place-items: center;
     color: var(--ink-b);
     opacity: 0.6;
-    transition: opacity 400ms var(--ease);
+    transition: opacity var(--standard) var(--ease);
 }
 
 .orb-icon svg {
@@ -595,7 +616,7 @@ body.is-playing .enso {
     width: 28px;
     height: 28px;
     fill: currentColor;
-    transition: opacity 300ms var(--ease), transform 400ms var(--ease);
+    transition: opacity var(--quick) var(--ease), transform var(--standard) var(--ease);
 }
 
 .icon-play { transform: translateX(2px); }
@@ -623,7 +644,7 @@ body.is-playing .icon-pause { opacity: 1; transform: none; }
     fill: none;
     stroke-width: 1.5;
     opacity: 0;
-    transition: opacity 500ms var(--ease);
+    transition: opacity var(--standard) var(--ease);
 }
 
 .timer-track { stroke: var(--line); }
@@ -634,7 +655,13 @@ body.is-playing .icon-pause { opacity: 1; transform: none; }
     stroke-linecap: round;
     stroke-dasharray: 100;
     stroke-dashoffset: 0;
-    transition: opacity 500ms var(--ease), stroke-dashoffset 1s linear;
+    /* Follows the 250ms countdown tick linearly, so it never lags behind the clock… */
+    transition: opacity var(--standard) var(--ease), stroke-dashoffset 250ms linear;
+}
+
+/* …and sweeps with the shared ease when the timer is changed or restarts. */
+.timer-progress.is-sweeping {
+    transition: opacity var(--standard) var(--ease), stroke-dashoffset var(--standard) var(--ease);
 }
 
 body.has-timer .timer-track,
@@ -652,7 +679,7 @@ body.has-timer .timer-progress {
     font-weight: 500;
     font-variant-numeric: lining-nums tabular-nums;
     letter-spacing: 0.02em;
-    transition: opacity 450ms var(--ease);
+    transition: opacity var(--standard) var(--ease);
 }
 
 .clock.is-hidden { opacity: 0; }
@@ -736,7 +763,7 @@ body.has-timer .timer-progress {
     background: var(--surface-strong);
     border: 1px solid var(--line);
     box-shadow: 0 2px 8px rgba(40, 30, 15, 0.25);
-    transition: transform 180ms var(--ease), box-shadow 180ms;
+    transition: transform var(--quick) var(--ease), box-shadow var(--quick) var(--ease);
 }
 
 .slider::-moz-range-thumb {
@@ -746,7 +773,7 @@ body.has-timer .timer-progress {
     background: var(--surface-strong);
     border: 1px solid var(--line);
     box-shadow: 0 2px 8px rgba(40, 30, 15, 0.25);
-    transition: transform 180ms var(--ease);
+    transition: transform var(--quick) var(--ease);
 }
 
 .slider:active::-webkit-slider-thumb {
@@ -788,7 +815,7 @@ body.has-timer .timer-progress {
 
 .volume-icon .wave,
 .volume-icon .mute {
-    transition: opacity 200ms var(--ease);
+    transition: opacity var(--quick) var(--ease);
 }
 
 .volume-icon .mute,

@@ -14,6 +14,8 @@ const timerProgress = $('timerProgress');
 const clock = $('clock');
 const themeBtn = $('themeBtn');
 const orbWrap = $('orbWrap');
+const enso = document.querySelector('.enso');
+const ripples = Array.from(orbWrap.querySelectorAll('.ripple'));
 const breathWord = $('breathWord');
 // Two stacked label layers so phase changes can crossfade.
 const breathLayers = Array.from(breathWord.querySelectorAll('.breath-layer'));
@@ -32,6 +34,8 @@ const CROSSFADE_SECONDS = 0.5;
 const FADE_IN = 1.4;
 const FADE_OUT = 0.6;
 const TIMER_FADE_OUT = 8;
+const ENSO_TURN_SECONDS = 140; // keep in sync with .enso's ensoTurn in style.css
+const RING_SWEEP_MS = 500;
 
 // Breathing guide: the 4-7-8 technique — inhale 4s, hold 7s, exhale 8s.
 const BREATH_PHASES = [
@@ -58,6 +62,7 @@ const state = {
     elapsed: 0,
     lastTick: 0,
     stopTimeout: null,
+    sweepTimeout: null,
     tickInterval: null,
     levelFrame: null,
     breathStart: 0,
@@ -195,6 +200,7 @@ async function play() {
 
     if (state.timerMinutes > 0 && state.timerRemaining <= 0) {
         state.timerRemaining = state.timerMinutes * 60;
+        sweepRing();
     }
 
     fadeTo(fadeGainTargetMakeup, FADE_IN);
@@ -217,11 +223,62 @@ function toggle() {
     else play();
 }
 
+// ---------- Continuity ----------
+
+function angleOf(transform) {
+    if (!transform || transform === 'none') return 0;
+    const m = new DOMMatrixReadOnly(transform);
+    return ((Math.atan2(m.b, m.a) * 180) / Math.PI + 360) % 360;
+}
+
+// Pausing must never make anything jump. The ensō stays at the angle it reached and the
+// next play continues turning from there; ripples in flight are held where they are, then
+// fade out at that size (shrinking back would read as the ripple being sucked in). (The breath disc and logo dot already transition from their
+// current size, since they are driven by --inhale rather than a keyframe animation.)
+function freezeMotion() {
+    const angle = angleOf(getComputedStyle(enso).transform);
+    enso.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+    enso.style.animationDelay = `${(-(angle / 360) * ENSO_TURN_SECONDS).toFixed(2)}s`;
+
+    const held = ripples.filter((ripple) => {
+        const style = getComputedStyle(ripple);
+        if (parseFloat(style.opacity) === 0) return false;
+        ripple.style.transition = 'none';
+        ripple.style.opacity = style.opacity;
+        ripple.style.transform = style.transform;
+        return true;
+    });
+    if (!held.length) return;
+    // Two frames: the held values must be painted before they are released, or the release is a snap.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        held.forEach((ripple) => {
+            ripple.style.transition = '';
+            ripple.style.opacity = '';
+        });
+        // Drop the held size only once the ripple is invisible.
+        setTimeout(() => {
+            held.forEach((ripple) => {
+                if (!orbWrap.classList.contains('exhale-wave')) ripple.style.transform = '';
+            });
+        }, 1000);
+    }));
+}
+
+// The ring follows the countdown linearly; when it is reset it sweeps to its new length instead.
+function sweepRing() {
+    timerProgress.classList.add('is-sweeping');
+    clearTimeout(state.sweepTimeout);
+    state.sweepTimeout = setTimeout(() => timerProgress.classList.remove('is-sweeping'), RING_SWEEP_MS);
+}
+
 // ---------- UI state ----------
 
 function setPlaying(playing) {
     const wasPlaying = state.playing;
     state.playing = playing;
+
+    // Snapshot moving parts before the class change below stops their animations.
+    if (wasPlaying && !playing) freezeMotion();
 
     document.body.classList.toggle('is-playing', playing);
     playBtn.setAttribute('aria-pressed', String(playing));
@@ -463,6 +520,7 @@ function setTimer(minutes) {
     state.timerRemaining = minutes * 60;
     localStorage.setItem('zenBrownNoiseTimer', String(minutes));
     renderTimer();
+    sweepRing();
     renderStatus();
 }
 
@@ -667,6 +725,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function init() {
+    // iOS Safari only applies :active (the orb's press state) when a touch listener exists.
+    document.addEventListener('touchstart', () => {}, { passive: true });
     setupMediaSession();
     applyLanguage(currentLang);
 
